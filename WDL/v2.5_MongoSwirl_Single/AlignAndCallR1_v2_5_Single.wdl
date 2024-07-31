@@ -389,9 +389,9 @@ task Filter {
 
     Boolean run_contamination 
     String? hasContamination
-    Float? contamination_major
-    Float? contamination_minor
-    Float? verifyBamID
+    Float contamination_major
+    Float contamination_minor
+    Float verifyBamID
      
     File? blacklisted_sites
     File? blacklisted_sites_index
