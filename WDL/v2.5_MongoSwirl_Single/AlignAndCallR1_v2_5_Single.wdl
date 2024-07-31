@@ -1,6 +1,6 @@
 version 1.0
 
-import "https://raw.githubusercontent.com/rahulg603/mtSwirl/master/WDL/v2.5_MongoSwirl_Single/MongoTasks_v2_5_Single.wdl" as MongoTasks_Single
+import "https://raw.githubusercontent.com/MoothaLab/mtSwirl/master/WDL/v2.5_MongoSwirl_Single/MongoTasks_v2_5_Single.wdl" as MongoTasks_Single
 
 workflow AlignAndCallR1 {
   meta {
@@ -86,7 +86,7 @@ workflow AlignAndCallR1 {
         suffix = '.nuc',
         mt_interval_list = nuc_interval_list,
 
-        compress = compress_output_vcf,
+        #compress = compress_output_vcf,
         m2_extra_args = select_first([m2_extra_args, ""]),
 
         max_alt_allele_count = 4,
