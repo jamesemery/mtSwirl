@@ -66,11 +66,33 @@ task MongoSubsetBamToChrMAndRevert {
     this_bai="~{select_first([input_bai, appended_bam])}"
     this_sample=out/"~{sample_name}"
 
-    ~{if force_manual_download then "gsutil " + requester_pays_prefix + " cp ~{d}{this_bam} bamfile.cram" else ""}
-    ~{if force_manual_download then "gsutil " + requester_pays_prefix + " cp ~{d}{this_bai} bamfile.cram.crai" else ""}
-    ~{if force_manual_download then "this_bam=bamfile.cram" else ""}
-    ~{if force_manual_download then "this_bai=bamfile.cram.crai" else ""}
-    
+#    ~{if force_manual_download then "gsutil " + requester_pays_prefix + " cp ~{d}{this_bam} bamfile.cram" else ""}
+#    ~{if force_manual_download then "gsutil " + requester_pays_prefix + " cp ~{d}{this_bai} bamfile.cram.crai" else ""}
+#    ~{if force_manual_download then "this_bam=bamfile.cram" else ""}
+#    ~{if force_manual_download then "this_bai=bamfile.cram.crai" else ""}
+
+    # get CRAM from GCS, either using gsutil or str_analysis.print_reads
+    if [[~{force_manual_download}]]; then
+      gsutil ~{requester_pays_prefix} cp ~{d}{this_bam} bamfile.cram;
+      gsutil ~{requester_pays_prefix} cp ~{d}{this_bai} bamfile.cram.crai;
+      this_bam=bamfile.cram;
+      this_bai=bamfile.cram.crai;
+    else
+      # This alternative to GATK PrintReads from the str-analysis GitHub repository (by the Broad Institute) avoids 
+      #  using htslib for downloading CRAM intervals from GCS, which allows it to download the minimum data possible. 
+      #  Htslib for some reason downloads extra data, which inflates pipeline costs.
+      python3 -m str_analysis.print_reads \ 
+        ~{"-L " + mt_interval_list} \
+        ~{"-L " + nuc_interval_list} \
+        ~{"-L " + contig_name} \
+        ~{"--gcloud-project " + requester_pays_project} \
+        --include-unmapped-read-pairs \
+        --output bamfile.cram \
+        --read-index ~{d}{this_bai} \ 
+        ~{d}{this_bam};
+    fi
+
+    # use GATK PrintReads to extract the CRAM to BAM
     gatk --java-options "-Xmx~{command_mem}m" PrintReads \
       ~{"-R " + ref_fasta} \
       ~{"-L " + mt_interval_list} \
@@ -78,8 +100,10 @@ task MongoSubsetBamToChrMAndRevert {
       ~{"-L " + contig_name} \
       --read-filter MateOnSameContigOrNoMappedMateReadFilter \
       --read-filter MateUnmappedAndUnmappedReadFilter \
-      ~{"--gcs-project-for-requester-pays " + requester_pays_project} \
-      ~{if force_manual_download then '-I bamfile.cram --read-index bamfile.cram.crai' else "-I ~{d}{this_bam} --read-index ~{d}{this_bai}"} \
+#      ~{"--gcs-project-for-requester-pays " + requester_pays_project} \
+#      ~{if force_manual_download then '-I bamfile.cram --read-index bamfile.cram.crai' else "-I ~{d}{this_bam} --read-index ~{d}{this_bai}"} \
+      -I $this_bam \
+      --read-index $this_bai \
       -O "~{d}{this_sample}.bam"  ~{printreads_extra_args}
 
     echo "Now removing mapping..."
@@ -234,11 +258,33 @@ task MongoSubsetBamToChrMAndRevertFUSE {
     this_bai="~{select_first([input_bai, input_bam + '.crai'])}"
     this_sample=out/"~{sample_name}"
 
-    ~{if force_manual_download then "gsutil " + requester_pays_prefix + " cp ~{d}{this_bam} bamfile.cram" else ""}
-    ~{if force_manual_download then "gsutil " + requester_pays_prefix + " cp ~{d}{this_bai} bamfile.cram.crai" else ""}
-    ~{if force_manual_download then "this_bam=bamfile.cram" else ""}
-    ~{if force_manual_download then "this_bai=bamfile.cram.crai" else ""}
-    
+#    ~{if force_manual_download then "gsutil " + requester_pays_prefix + " cp ~{d}{this_bam} bamfile.cram" else ""}
+#    ~{if force_manual_download then "gsutil " + requester_pays_prefix + " cp ~{d}{this_bai} bamfile.cram.crai" else ""}
+#    ~{if force_manual_download then "this_bam=bamfile.cram" else ""}
+#    ~{if force_manual_download then "this_bai=bamfile.cram.crai" else ""}
+
+    # get CRAM from GCS, either using gsutil or str_analysis.print_reads
+    if [[~{force_manual_download}]]; then
+      gsutil ~{requester_pays_prefix} cp ~{d}{this_bam} bamfile.cram;
+      gsutil ~{requester_pays_prefix} cp ~{d}{this_bai} bamfile.cram.crai;
+      this_bam=bamfile.cram;
+      this_bai=bamfile.cram.crai;
+    else
+      # This alternative to GATK PrintReads from the str-analysis GitHub repository (by the Broad Institute) avoids 
+      #  using htslib for downloading CRAM intervals from GCS, which allows it to download the minimum data possible. 
+      #  Htslib for some reason downloads extra data, which inflates pipeline costs.
+      python3 -m str_analysis.print_reads \ 
+        ~{"-L " + mt_interval_list} \
+        ~{"-L " + nuc_interval_list} \
+        ~{"-L " + contig_name} \
+        ~{"--gcloud-project " + requester_pays_project} \
+        --include-unmapped-read-pairs \
+        --output bamfile.cram \
+        --read-index ~{d}{this_bai} \ 
+        ~{d}{this_bam};
+    fi
+
+    # use GATK PrintReads to extract the CRAM to BAM
     gatk --java-options "-Xmx~{command_mem}m" PrintReads \
       ~{"-R " + ref_fasta} \
       ~{"-L " + mt_interval_list} \
@@ -246,8 +292,10 @@ task MongoSubsetBamToChrMAndRevertFUSE {
       ~{"-L " + contig_name} \
       --read-filter MateOnSameContigOrNoMappedMateReadFilter \
       --read-filter MateUnmappedAndUnmappedReadFilter \
-      ~{"--gcs-project-for-requester-pays " + requester_pays_project} \
-      ~{if force_manual_download then '-I bamfile.cram --read-index bamfile.cram.crai' else "-I ~{d}{this_bam} --read-index ~{d}{this_bai}"} \
+#      ~{"--gcs-project-for-requester-pays " + requester_pays_project} \
+#      ~{if force_manual_download then '-I bamfile.cram --read-index bamfile.cram.crai' else "-I ~{d}{this_bam} --read-index ~{d}{this_bai}"} \
+      -I $this_bam \
+      --read-index $this_bai \
       -O "~{d}{this_sample}.bam"
 
     echo "Now removing mapping..."

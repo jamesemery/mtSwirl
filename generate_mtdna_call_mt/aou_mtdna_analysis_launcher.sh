@@ -5,9 +5,9 @@ export numTest=1 # number of samples per iteration
 export numIter=1 # number of iterations
 export JOBLIMIT=5000 # how many jobs to allow simulataneously
 export outputFold=test_output
-export PORTID=8094
+#export PORTID=8094
 export USE_MEM=80
-export SQL_DB_NAME="local_cromwell_run.db" # name of local SQL database
+#export SQL_DB_NAME="local_cromwell_run.db" # name of local SQL database
 export FORCEDOWNLOAD='False' # if enabled, will force download for CRAM via gsutil -u {} cp
 export RERUN_FAIL='False' # if enabled, will try to rerun failures. If disabled, will filter out failures.
 export FILE_DONE="mt_pipeline_single_2_5_stats.tsv" # expects this to be in the current bucket
@@ -117,26 +117,26 @@ fp.write(options_content)
 fp.close()
 print(options_content)
 
-# create cromwell configuration, lifting the job limit and exporting to local SQL database
-with open('/home/jupyter/cromwell.conf', 'r') as f:
-    input_conf = f.read()
-include_str_repl = 'include required(classpath("application"))\n\n'
-input_conf_rm = input_conf.replace(include_str_repl, '')
-cromwell_config_file = ConfigFactory.parse_string(input_conf_rm)
-cromwell_config_file['system'] = ConfigTree({'new-workflow-poll-rate': 1,
-                                             'max-concurrent-workflows': joblimit,
-                                             'max-workflow-launch-count': 400,
-                                             'job-rate-control': ConfigTree({'jobs': 50,
-                                                                             'per': '3 seconds'})})
-cromwell_config_file['backend']['providers']['PAPIv2-beta']['config']['concurrent-job-limit'] = joblimit
-cromwell_config_file['backend']['providers']['PAPIv2-beta']['config']['genomics']['enable-fuse'] = True
-cromwell_config_file['database'] = ConfigTree({'profile': "slick.jdbc.HsqldbProfile$",
-                                               'insert-batch-size': 6000,
-                                               'db': ConfigTree({'driver':"org.hsqldb.jdbcDriver", 
-                                                                 'url':f'jdbc:hsqldb:file:{sql_db};shutdown=false;hsqldb.default_table_type=cached;hsqldb.tx=mvcc;hsqldb.large_data=true;hsqldb.lob_compressed=true;hsqldb.script_format=3;hsqldb.result_max_memory_rows=20000',
-                                                                 'connectionTimeout': 300000})})
-with open('/home/jupyter/cromwell.new.conf', 'w') as f:
-    f.write(include_str_repl + HOCONConverter.to_hocon(cromwell_config_file))
+## create cromwell configuration, lifting the job limit and exporting to local SQL database
+#with open('/home/jupyter/cromwell.conf', 'r') as f:
+#    input_conf = f.read()
+#include_str_repl = 'include required(classpath("application"))\n\n'
+#input_conf_rm = input_conf.replace(include_str_repl, '')
+#cromwell_config_file = ConfigFactory.parse_string(input_conf_rm)
+#cromwell_config_file['system'] = ConfigTree({'new-workflow-poll-rate': 1,
+#                                             'max-concurrent-workflows': joblimit,
+#                                             'max-workflow-launch-count': 400,
+#                                             'job-rate-control': ConfigTree({'jobs': 50,
+#                                                                             'per': '3 seconds'})})
+#cromwell_config_file['backend']['providers']['PAPIv2-beta']['config']['concurrent-job-limit'] = joblimit
+#cromwell_config_file['backend']['providers']['PAPIv2-beta']['config']['genomics']['enable-fuse'] = True
+#cromwell_config_file['database'] = ConfigTree({'profile': "slick.jdbc.HsqldbProfile$",
+#                                               'insert-batch-size': 6000,
+#                                               'db': ConfigTree({'driver':"org.hsqldb.jdbcDriver", 
+#                                                                 'url':f'jdbc:hsqldb:file:{sql_db};shutdown=false;hsqldb.default_table_type=cached;hsqldb.tx=mvcc;hsqldb.large_data=true;hsqldb.lob_compressed=true;hsqldb.script_format=3;hsqldb.result_max_memory_rows=20000',
+#                                                                 'connectionTimeout': 300000})})
+#with open('/home/jupyter/cromwell.new.conf', 'w') as f:
+#    f.write(include_str_repl + HOCONConverter.to_hocon(cromwell_config_file))
 
 # load cromwell configuration for modification
 with open(json_filename, 'r') as json_file:
@@ -161,15 +161,15 @@ else:
     print(f'{str(new_size)} samples remain in the manifest (of {str(original_size)} originally present).')
 df = df.reset_index(drop=True)
 
-cromwell_run_cmd = f'source "/home/jupyter/.sdkman/bin/sdkman-init.sh" &&  sdk install java 11.0.14-tem && echo "Validating WDL..." && java -jar womtool-77.jar validate _WDL_FILE_ && java -Xmx{str(mem)}g -classpath ".:sqlite-jdbc.jar" -Dconfig.file=/home/jupyter/cromwell.new.conf -Dwebservice.port={str(port)} -jar cromwell-77.jar server'
-cromwell_run_cmd_final = cromwell_run_cmd.replace("_WDL_FILE_", wdl_filename)
+#cromwell_run_cmd = f'source "/home/jupyter/.sdkman/bin/sdkman-init.sh" &&  sdk install java 11.0.14-tem && echo "Validating WDL..." && java -jar womtool-77.jar validate _WDL_FILE_ && java -Xmx{str(mem)}g -classpath ".:sqlite-jdbc.jar" -Dconfig.file=/home/jupyter/cromwell.new.conf -Dwebservice.port={str(port)} -jar cromwell-77.jar server'
+#cromwell_run_cmd_final = cromwell_run_cmd.replace("_WDL_FILE_", wdl_filename)
 
-with open(f"cromwell_startup_script.sh", "w") as text_file:
-    text_file.write("#!/bin/bash\n")
-    text_file.write(cromwell_run_cmd_final + '\n')
+#with open(f"cromwell_startup_script.sh", "w") as text_file:
+#    text_file.write("#!/bin/bash\n")
+#    text_file.write(cromwell_run_cmd_final + '\n')
 
-with open(f"cromwell_submission_script_individual_jobs.sh", "w") as text_file:
-    text_file.write("#!/bin/bash\n")
+#with open(f"cromwell_submission_script_individual_jobs.sh", "w") as text_file:
+#    text_file.write("#!/bin/bash\n")
 
 json_collection = []
 max_rows = df.shape[0]
@@ -182,7 +182,7 @@ for idx in range(0, n_iter):
     else:
         this_max = (idx+1)*n_test
         break_here = False
-    
+
     df_sub = df.iloc[idx*n_test: this_max]
     s = list(df_sub.person_id)
     cram_paths = list(df_sub.cram_uri)
@@ -213,13 +213,13 @@ for idx in range(0, n_iter):
     with open(path_indiv_save + this_json_filename, 'w') as f:
         json.dump(this_json, f)
 
-    this_cromwell_cmd = f'curl -X POST "http://localhost:{str(port)}/api/workflows/v1" -H "accept: application/json" -F workflowSource=@_WDL_FILE_ -F workflowInputs=@_INPUTS_ -F workflowOptions=@_OPTIONS_FILE_'
-    this_cromwell_cmd = this_cromwell_cmd.replace("_WDL_FILE_", wdl_filename)
-    this_cromwell_cmd = this_cromwell_cmd.replace("_INPUTS_", this_json_filename)
-    this_cromwell_cmd = this_cromwell_cmd.replace("_OPTIONS_FILE_", options_filename)
+#    this_cromwell_cmd = f'curl -X POST "http://localhost:{str(port)}/api/workflows/v1" -H "accept: application/json" -F workflowSource=@_WDL_FILE_ -F workflowInputs=@_INPUTS_ -F workflowOptions=@_OPTIONS_FILE_'
+#    this_cromwell_cmd = this_cromwell_cmd.replace("_WDL_FILE_", wdl_filename)
+#    this_cromwell_cmd = this_cromwell_cmd.replace("_INPUTS_", this_json_filename)
+#    this_cromwell_cmd = this_cromwell_cmd.replace("_OPTIONS_FILE_", options_filename)
 
-    with open(f"{path_indiv_save}cromwell_submission_script_individual_jobs.sh", "a") as text_file:
-        text_file.write(this_cromwell_cmd + '\n')
+#    with open(f"{path_indiv_save}cromwell_submission_script_individual_jobs.sh", "a") as text_file:
+#        text_file.write(this_cromwell_cmd + '\n')
 
     if break_here:
         break
@@ -231,22 +231,22 @@ with open(batch_json_filename, 'w') as f:
 with open('ct_submissions.txt', 'w') as f:
     f.write(str(len(json_collection)))
 
-batch_cromwell_cmd = f'curl -X POST "http://localhost:{str(port)}/api/workflows/v1/batch" -H "accept: application/json" -F workflowSource=@_WDL_FILE_ -F workflowInputs=@_INPUTS_ -F workflowOptions=@_OPTIONS_FILE_'
-batch_cromwell_cmd = batch_cromwell_cmd.replace("_WDL_FILE_", wdl_filename)
-batch_cromwell_cmd = batch_cromwell_cmd.replace("_INPUTS_", batch_json_filename)
-batch_cromwell_cmd = batch_cromwell_cmd.replace("_OPTIONS_FILE_", options_filename)
+#batch_cromwell_cmd = f'curl -X POST "http://localhost:{str(port)}/api/workflows/v1/batch" -H "accept: application/json" -F workflowSource=@_WDL_FILE_ -F workflowInputs=@_INPUTS_ -F workflowOptions=@_OPTIONS_FILE_'
+#batch_cromwell_cmd = batch_cromwell_cmd.replace("_WDL_FILE_", wdl_filename)
+#batch_cromwell_cmd = batch_cromwell_cmd.replace("_INPUTS_", batch_json_filename)
+#batch_cromwell_cmd = batch_cromwell_cmd.replace("_OPTIONS_FILE_", options_filename)
 
-count_n_submit = "submission_count=$(grep -o 'Submitted' batch_submission_ids.txt | wc -l)\n"
-test_ct = 'if [ "$submission_count" -ne "$(cat ct_submissions.txt)" ]; then echo "ERROR: submission count is incorrect."; exit 1; fi\n'
-get_batch_ids = 'cat batch_submission_ids.txt | sed \'s/{"id"://g\' | sed \'s/","status":"Submitted"}//g\' | sed \'s/"//g\' | sed \'s/,/\\n/g\' | sed \'s/\\[//g\' | sed \'s/\\]//g\' > ordered_batch_ids.txt\n'
+#count_n_submit = "submission_count=$(grep -o 'Submitted' batch_submission_ids.txt | wc -l)\n"
+#test_ct = 'if [ "$submission_count" -ne "$(cat ct_submissions.txt)" ]; then echo "ERROR: submission count is incorrect."; exit 1; fi\n'
+#get_batch_ids = 'cat batch_submission_ids.txt | sed \'s/{"id"://g\' | sed \'s/","status":"Submitted"}//g\' | sed \'s/"//g\' | sed \'s/,/\\n/g\' | sed \'s/\\[//g\' | sed \'s/\\]//g\' > ordered_batch_ids.txt\n'
 
-with open(f"cromwell_submission_script_batch.sh", "w") as text_file:
-    text_file.write("#!/bin/bash\n")
-    text_file.write(batch_cromwell_cmd + ' | tee batch_submission_ids.txt\n')
-    text_file.write(count_n_submit)
-    text_file.write(test_ct)
-    text_file.write(get_batch_ids)
-    text_file.write('echo "" >> ordered_batch_ids.txt\n')
+#with open(f"cromwell_submission_script_batch.sh", "w") as text_file:
+#    text_file.write("#!/bin/bash\n")
+#    text_file.write(batch_cromwell_cmd + ' | tee batch_submission_ids.txt\n')
+#    text_file.write(count_n_submit)
+#    text_file.write(test_ct)
+#    text_file.write(get_batch_ids)
+#    text_file.write('echo "" >> ordered_batch_ids.txt\n')
 
 CODE
 
@@ -258,28 +258,28 @@ CODE
 
 #### CREATE MONITORING COMMAND
 #sleep 150
-echo "Server started."
-echo "Here is the tail of the current stdout.log. Examine this to make sure the server is running:"
-tail -n10 cromwell_server_stdout.log
-echo ""
-echo "Run cromwell_submission_script_batch.sh to submit the desired jobs."
-echo ""
-echo "Run the following command to track the progress of the various runs:"
-echo ""
-export success_file_pref="${outputFold}_prog_$(date +'%T' | sed 's|:|.|g')"
-echo "python gnomad-mitochondria/gnomad_mitochondria/pipeline/cromwell_run_monitor.py --run-folder ${outputFold} --sub-ids ordered_batch_ids.txt --sample-lists ${outputFold}/sample_list{}.txt --check-success --output ${success_file_pref}" | tee check_workflow_status.sh
-echo ""
-echo "We have outputted this command in check_workflow_status.sh."
-echo ""
+#echo "Server started."
+#echo "Here is the tail of the current stdout.log. Examine this to make sure the server is running:"
+#tail -n10 cromwell_server_stdout.log
+#echo ""
+#echo "Run cromwell_submission_script_batch.sh to submit the desired jobs."
+#echo ""
+#echo "Run the following command to track the progress of the various runs:"
+#echo ""
+#export success_file_pref="${outputFold}_prog_$(date +'%T' | sed 's|:|.|g')"
+#echo "python gnomad-mitochondria/gnomad_mitochondria/pipeline/cromwell_run_monitor.py --run-folder ${outputFold} --sub-ids ordered_batch_ids.txt --sample-lists ${outputFold}/sample_list{}.txt --check-success --output ${success_file_pref}" | tee check_workflow_status.sh
+#echo ""
+#echo "We have outputted this command in check_workflow_status.sh."
+#echo ""
 
 
 #### CREATE UPLOADING COMMAND
 echo "Upon completion of the workflow, don't forget to upload data file paths to gs:// !!"
-echo "Use compile_paths.sh to do this, which will both merge files from this run and append to the database."
-echo '#!/bin/bash' > compile_paths.sh
-export tsvPREF="${WORKSPACE_BUCKET}/tsv/${outputFold}"
-export htPREF="${WORKSPACE_BUCKET}/ht/${outputFold}"
-echo "gsutil cp ${success_file_pref}'*' ${tsvPREF}/" >> compile_paths.sh
-echo "python mtSwirl/generate_mtdna_call_mt/AoU/aou_collate_tables.py --pipeline-output-path ${success_file_pref}.success.tsv --file-paths-table-flat-output ${tsvPREF}/tab_batch_file_paths.tsv --per-sample-stats-flat-output ${tsvPREF}/tab_per_sample_stats.tsv --file-paths-table-output ${htPREF}/tab_batch_file_paths.ht --per-sample-stats-output ${htPREF}/tab_per_sample_stats.ht" >> compile_paths.sh
-echo "python mtSwirl/generate_mtdna_call_mt/AoU/aou_update_sample_database.py --new-paths tsv/${outputFold}/tab_batch_file_paths.tsv --new-stats tsv/${outputFold}/tab_per_sample_stats.tsv --new-failures tsv/${outputFold}/${success_file_pref}.failure.tsv" >> compile_paths.sh
-echo "" >> compile_paths.sh
+#echo "Use compile_paths.sh to do this, which will both merge files from this run and append to the database."
+#echo '#!/bin/bash' > compile_paths.sh
+#export tsvPREF="${WORKSPACE_BUCKET}/tsv/${outputFold}"
+#export htPREF="${WORKSPACE_BUCKET}/ht/${outputFold}"
+#echo "gsutil cp ${success_file_pref}'*' ${tsvPREF}/" >> compile_paths.sh
+#echo "python mtSwirl/generate_mtdna_call_mt/AoU/aou_collate_tables.py --pipeline-output-path ${success_file_pref}.success.tsv --file-paths-table-flat-output ${tsvPREF}/tab_batch_file_paths.tsv --per-sample-stats-flat-output ${tsvPREF}/tab_per_sample_stats.tsv --file-paths-table-output ${htPREF}/tab_batch_file_paths.ht --per-sample-stats-output ${htPREF}/tab_per_sample_stats.ht" >> compile_paths.sh
+#echo "python mtSwirl/generate_mtdna_call_mt/AoU/aou_update_sample_database.py --new-paths tsv/${outputFold}/tab_batch_file_paths.tsv --new-stats tsv/${outputFold}/tab_per_sample_stats.tsv --new-failures tsv/${outputFold}/${success_file_pref}.failure.tsv" >> compile_paths.sh
+#echo "" >> compile_paths.sh
