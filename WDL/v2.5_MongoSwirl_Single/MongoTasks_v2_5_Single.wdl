@@ -152,11 +152,11 @@ task MongoSubsetBamToChrMAndRevert {
       INCLUDE_BQ_HISTOGRAM=true \
       THEORETICAL_SENSITIVITY_OUTPUT="~{d}{this_sample}.theoretical_sensitivity.txt"
 
-    R --vanilla <<-CODE
+    R --vanilla <<CODE
       df = read.table("~{d}{this_sample}.wgs_metrics.txt",skip=6,header=TRUE,stringsAsFactors=FALSE,sep='\t',nrows=1)
       write.table(floor(df[,"MEAN_COVERAGE"]), "~{d}{this_sample}.mean_coverage.txt", quote=F, col.names=F, row.names=F)
       write.table(df[,"MEDIAN_COVERAGE"], "~{d}{this_sample}.median_coverage.txt", quote=F, col.names=F, row.names=F)
-    CODE
+CODE
 
     echo "Now preprocessing subsetted bam..."
     gatk --java-options "-Xmx~{command_mem}m" MarkDuplicates \
