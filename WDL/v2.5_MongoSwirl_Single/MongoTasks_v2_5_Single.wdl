@@ -81,15 +81,7 @@ task MongoSubsetBamToChrMAndRevert {
       # This alternative to GATK PrintReads from the str-analysis GitHub repository (by the Broad Institute) avoids 
       #  using htslib for downloading CRAM intervals from GCS, which allows it to download the minimum data possible. 
       #  Htslib for some reason downloads extra data, which inflates pipeline costs.
-      python3 -m str_analysis.print_reads \ 
-        ~{"-L " + mt_interval_list} \
-        ~{"-L " + nuc_interval_list} \
-        ~{"-L " + contig_name} \
-        ~{"--gcloud-project " + requester_pays_project} \
-        --include-unmapped-read-pairs \
-        --output bamfile.cram \
-        --read-index ~{d}{this_bai} \ 
-        ~{d}{this_bam};
+      python3 -m str_analysis.print_reads ~{"-L " + mt_interval_list} ~{"-L " + nuc_interval_list} ~{"-L " + contig_name} ~{"--gcloud-project " + requester_pays_project} --include-unmapped-read-pairs --output bamfile.cram --read-index ~{d}{this_bai} ~{d}{this_bam};
     fi
 
     # use GATK PrintReads to extract the CRAM to BAM
@@ -340,7 +332,7 @@ task MongoSubsetBamToChrMAndRevertFUSE {
       df = read.table("~{d}{this_sample}.wgs_metrics.txt",skip=6,header=TRUE,stringsAsFactors=FALSE,sep='\t',nrows=1)
       write.table(floor(df[,"MEAN_COVERAGE"]), "~{d}{this_sample}.mean_coverage.txt", quote=F, col.names=F, row.names=F)
       write.table(df[,"MEDIAN_COVERAGE"], "~{d}{this_sample}.median_coverage.txt", quote=F, col.names=F, row.names=F)
-    CODE
+CODE
 
     echo "Now preprocessing subsetted bam..."
     gatk --java-options "-Xmx~{command_mem}m" MarkDuplicates \
