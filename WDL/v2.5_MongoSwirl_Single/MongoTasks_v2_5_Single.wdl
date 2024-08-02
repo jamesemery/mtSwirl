@@ -72,7 +72,7 @@ task MongoSubsetBamToChrMAndRevert {
 #    ~{if force_manual_download then "this_bai=bamfile.cram.crai" else ""}
 
     # get CRAM from GCS, either using gsutil or str_analysis.print_reads
-    if [[~{force_manual_download}]]; then
+    if ~{force_manual_download}; then
       gsutil ~{requester_pays_prefix} cp ~{d}{this_bam} bamfile.cram;
       gsutil ~{requester_pays_prefix} cp ~{d}{this_bai} bamfile.cram.crai;
       this_bam=bamfile.cram;
@@ -264,7 +264,7 @@ task MongoSubsetBamToChrMAndRevertFUSE {
 #    ~{if force_manual_download then "this_bai=bamfile.cram.crai" else ""}
 
     # get CRAM from GCS, either using gsutil or str_analysis.print_reads
-    if [[~{force_manual_download}]]; then
+    if ~{force_manual_download}; then
       gsutil ~{requester_pays_prefix} cp ~{d}{this_bam} bamfile.cram;
       gsutil ~{requester_pays_prefix} cp ~{d}{this_bai} bamfile.cram.crai;
       this_bam=bamfile.cram;
