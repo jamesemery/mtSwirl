@@ -63,7 +63,8 @@ workflow MitochondriaPipelineWrapper {
     String genomes_cloud_docker = "docker.io/rahulg603/genomes_cloud_docker"
     String haplochecker_docker = "docker.io/rahulg603/haplochecker_docker"
 #    String gatk_samtools_docker = "docker.io/rahulg603/gatk46_samtools"
-    String gatk_samtools_docker = "docker.io/rahulg603/gatk_samtools_docker"
+#    String gatk_samtools_docker = "docker.io/rahulg603/gatk_samtools_docker"
+    String gatk_samtools_docker = "docker.io/weisburd/gatk-and-str-analysis:latest"
 
     #Optional runtime arguments
     Int? printreads_mem

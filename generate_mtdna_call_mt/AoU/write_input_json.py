@@ -23,7 +23,7 @@ bucket = os.getenv("WORKSPACE_BUCKET")
 project = os.getenv("GOOGLE_PROJECT")
 cloud_fs = gcsfs.GCSFileSystem(project=project, requester_pays=True)
 # set up cromwell directories
-path_indiv_save = 'test_output'
+path_indiv_save = 'test_output_new_printreads'
 output_bucket = os.path.join(bucket, path_indiv_save)  # This is where the output of the WDL will be.
 
 options_filename = "options.json"
