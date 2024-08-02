@@ -273,15 +273,7 @@ task MongoSubsetBamToChrMAndRevertFUSE {
       # This alternative to GATK PrintReads from the str-analysis GitHub repository (by the Broad Institute) avoids 
       #  using htslib for downloading CRAM intervals from GCS, which allows it to download the minimum data possible. 
       #  Htslib for some reason downloads extra data, which inflates pipeline costs.
-      python3 -m str_analysis.print_reads \ 
-        ~{"-L " + mt_interval_list} \
-        ~{"-L " + nuc_interval_list} \
-        ~{"-L " + contig_name} \
-        ~{"--gcloud-project " + requester_pays_project} \
-        --include-unmapped-read-pairs \
-        --output bamfile.cram \
-        --read-index ~{d}{this_bai} \ 
-        ~{d}{this_bam};
+      python3 -m str_analysis.print_reads ~{"-L " + mt_interval_list} ~{"-L " + nuc_interval_list} ~{"-L " + contig_name} ~{"--gcloud-project " + requester_pays_project} --include-unmapped-read-pairs --output bamfile.cram --read-index ~{d}{this_bai} ~{d}{this_bam};
     fi
 
     # use GATK PrintReads to extract the CRAM to BAM
