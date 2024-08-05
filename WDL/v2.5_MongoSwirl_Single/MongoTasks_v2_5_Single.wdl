@@ -82,6 +82,10 @@ task MongoSubsetBamToChrMAndRevert {
       #  using htslib for downloading CRAM intervals from GCS, which allows it to download the minimum data possible. 
       #  Htslib for some reason downloads extra data, which inflates pipeline costs.
       echo python3 -m str_analysis.print_reads ~{"-L " + mt_interval_list} ~{"-L " + nuc_interval_list} ~{"-L " + contig_name} ~{"--gcloud-project " + requester_pays_project} --include-unmapped-read-pairs --output bamfile.cram --read-index ~{d}{this_bai} ~{d}{this_bam};
+      which samtools;
+      samtools --version;
+      which python3;
+      python3 -c 'import pysam; print(pysam.__file__); print(pysam.__version__);';
       python3 -m str_analysis.print_reads ~{"-L " + mt_interval_list} ~{"-L " + nuc_interval_list} ~{"-L " + contig_name} ~{"--gcloud-project " + requester_pays_project} --include-unmapped-read-pairs --output bamfile.cram --read-index ~{d}{this_bai} ~{d}{this_bam};
     fi
 
