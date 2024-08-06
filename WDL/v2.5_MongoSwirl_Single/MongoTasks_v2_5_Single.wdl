@@ -82,6 +82,8 @@ task MongoSubsetBamToChrMAndRevert {
       #  a situation where PrintReads downloads extra data from outside the specified intervals that can inflate the pipeline run costs.
       echo python3 -m str_analysis.print_reads ~{"-L " + mt_interval_list} ~{"-L " + nuc_interval_list} ~{"-L " + contig_name} ~{"--gcloud-project " + requester_pays_project} ~{"-R " + ref_fasta} --include-unmapped-read-pairs --output bamfile.cram --read-index ~{d}{this_bai} ~{d}{this_bam} --verbose;
       python3 -m str_analysis.print_reads ~{"-L " + mt_interval_list} ~{"-L " + nuc_interval_list} ~{"-L " + contig_name} ~{"--gcloud-project " + requester_pays_project} ~{"-R " + ref_fasta} --include-unmapped-read-pairs --output bamfile.cram --read-index ~{d}{this_bai} ~{d}{this_bam} --verbose;
+      this_bam=bamfile.cram;
+      this_bai=bamfile.cram.crai;
     fi
 
     # use GATK PrintReads to extract the CRAM to BAM
