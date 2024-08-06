@@ -92,8 +92,6 @@ task MongoSubsetBamToChrMAndRevert {
       ~{"-L " + contig_name} \
       --read-filter MateOnSameContigOrNoMappedMateReadFilter \
       --read-filter MateUnmappedAndUnmappedReadFilter \
-#      ~{"--gcs-project-for-requester-pays " + requester_pays_project} \
-#      ~{if force_manual_download then '-I bamfile.cram --read-index bamfile.cram.crai' else "-I ~{d}{this_bam} --read-index ~{d}{this_bai}"} \
       -I $this_bam \
       --read-index $this_bai \
       -O "~{d}{this_sample}.bam"  ~{printreads_extra_args}
