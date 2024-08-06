@@ -79,14 +79,9 @@ task MongoSubsetBamToChrMAndRevert {
       this_bai=bamfile.cram.crai;
     else
       # This alternative to GATK PrintReads from the str-analysis GitHub repository (by the Broad Institute) avoids 
-      #  using htslib for downloading CRAM intervals from GCS, which allows it to download the minimum data possible. 
-      #  Htslib for some reason downloads extra data, which inflates pipeline costs.
-      echo python3 -m str_analysis.print_reads ~{"-L " + mt_interval_list} ~{"-L " + nuc_interval_list} ~{"-L " + contig_name} ~{"--gcloud-project " + requester_pays_project} --include-unmapped-read-pairs --output bamfile.cram --read-index ~{d}{this_bai} ~{d}{this_bam};
-      which samtools;
-      samtools --version;
-      which python3;
-      python3 -c 'import pysam; print(pysam.__file__); print(pysam.__version__);';
-      python3 -m str_analysis.print_reads ~{"-L " + mt_interval_list} ~{"-L " + nuc_interval_list} ~{"-L " + contig_name} ~{"--gcloud-project " + requester_pays_project} --include-unmapped-read-pairs --output bamfile.cram --read-index ~{d}{this_bai} ~{d}{this_bam};
+      #  a situation where PrintReads downloads extra data from outside the specified intervals that can inflate the pipeline run costs.
+      echo python3 -m str_analysis.print_reads ~{"-L " + mt_interval_list} ~{"-L " + nuc_interval_list} ~{"-L " + contig_name} ~{"--gcloud-project " + requester_pays_project} ~{"-R " + ref_fasta} --include-unmapped-read-pairs --output bamfile.cram --read-index ~{d}{this_bai} ~{d}{this_bam} --verbose;
+      python3 -m str_analysis.print_reads ~{"-L " + mt_interval_list} ~{"-L " + nuc_interval_list} ~{"-L " + contig_name} ~{"--gcloud-project " + requester_pays_project} ~{"-R " + ref_fasta} --include-unmapped-read-pairs --output bamfile.cram --read-index ~{d}{this_bai} ~{d}{this_bam} --verbose;
     fi
 
     # use GATK PrintReads to extract the CRAM to BAM
