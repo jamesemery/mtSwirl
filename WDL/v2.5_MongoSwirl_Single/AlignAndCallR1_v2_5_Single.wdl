@@ -29,7 +29,7 @@ workflow AlignAndCallR1 {
 
     Boolean use_haplotype_caller_nucdna
     Int hc_dp_lower_bound
-    File? gatk_override
+    String? gatk_override
     String? gatk_docker_override
     String gatk_version = "4.2.6.0"
     String? m2_extra_args
@@ -298,7 +298,7 @@ task M2 {
     Boolean nucdna = false
     Boolean disable_filters = false
     Boolean compress
-    File? gatk_override
+    String? gatk_override
     String gatk_version
 
     File? mt_interval_list
@@ -396,7 +396,7 @@ task Filter {
     File? blacklisted_sites
     File? blacklisted_sites_index
 
-    File? gatk_override
+    String? gatk_override
     String? gatk_docker_override
     String gatk_version
 

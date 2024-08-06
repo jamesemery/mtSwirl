@@ -22,7 +22,7 @@ task MongoSubsetBamToChrMAndRevert {
     Int? read_length
     Int? coverage_cap
 
-    File? gatk_override
+    String? gatk_override
     String? gatk_docker_override
     String gatk_version
     String? printreads_extra_args
@@ -205,7 +205,7 @@ task MongoSubsetBamToChrMAndRevertFUSE {
     Int? read_length
     Int? coverage_cap
 
-    File? gatk_override
+    String? gatk_override
     String? gatk_docker_override
     String gatk_version
 
@@ -791,7 +791,7 @@ task MongoHC {
 
     Boolean compress
     String gatk_version
-    File? gatk_override
+    String? gatk_override
     String? gatk_docker_override
     Float? contamination
 
@@ -940,7 +940,7 @@ task MongoNucM2 {
     File? blacklisted_sites_index
 
     # runtime
-    File? gatk_override
+    String? gatk_override
     String gatk_version
     String? gatk_docker_override
     Int mem
@@ -1094,7 +1094,7 @@ task MongoRunM2InitialFilterSplit {
 
     # runtime
     String? gatk_docker_override
-    File? gatk_override
+    String? gatk_override
     String gatk_version
     Int mem
     Int? preemptible_tries
@@ -1233,7 +1233,7 @@ task MongoM2FilterContaminationSplit {
     File? blacklisted_sites
     File? blacklisted_sites_index
 
-    File? gatk_override
+    String? gatk_override
     String? gatk_docker_override
     String gatk_version
 
@@ -1635,7 +1635,7 @@ task MongoCallMtAndShifted {
     String suffix
 
     # runtime
-    File? gatk_override
+    String? gatk_override
     String gatk_version
     String? gatk_docker_override
     Int mem
@@ -1775,7 +1775,7 @@ task MongoLiftoverCombineMergeFilterContamSplit {
     Float? f_score_beta
 
     Int? preemptible_tries
-    File? gatk_override
+    String? gatk_override
     String? gatk_docker_override
     String gatk_version
   }

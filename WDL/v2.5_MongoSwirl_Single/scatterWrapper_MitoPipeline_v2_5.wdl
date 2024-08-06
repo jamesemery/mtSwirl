@@ -57,14 +57,15 @@ workflow MitochondriaPipelineWrapper {
 
     #Docker and version arguments
     String gatk_version = "4.2.6.0"
-    File? gatk_override
+    String? gatk_override
     String? gatk_docker_override
     String ucsc_docker = "docker.io/rahulg603/ucsc_docker"
     String genomes_cloud_docker = "docker.io/rahulg603/genomes_cloud_docker"
     String haplochecker_docker = "docker.io/rahulg603/haplochecker_docker"
 #    String gatk_samtools_docker = "docker.io/rahulg603/gatk46_samtools"
 #    String gatk_samtools_docker = "docker.io/rahulg603/gatk_samtools_docker"
-    String gatk_samtools_docker = "docker.io/weisburd/gatk-and-str-analysis:latest"
+#    String gatk_samtools_docker = "docker.io/weisburd/gatk-and-str-analysis:latest"
+    String gatk_samtools_docker = "docker.io/weisburd/gatk-and-str-analysis@sha256:1e119083cd66ce67dec3cd93432cbcb1c68410e3b57949c3b76777c3d11b83f9"
 
     #Optional runtime arguments
     Int? printreads_mem
