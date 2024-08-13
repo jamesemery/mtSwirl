@@ -173,6 +173,7 @@ CODE
     memory: machine_mem + " GB"
     disks: "local-disk " + disk_size + " HDD"
     docker: select_first([gatk_docker_override, "us.gcr.io/broad-gatk/gatk:"+gatk_version])
+    docker_user: "mambauser"
     preemptible: select_first([preemptible_tries, 5])
     cpu: select_first([n_cpu,1])
   }
