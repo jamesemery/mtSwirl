@@ -65,7 +65,8 @@ workflow MitochondriaPipelineWrapper {
 #    String gatk_samtools_docker = "docker.io/rahulg603/gatk46_samtools"
 #    String gatk_samtools_docker = "docker.io/rahulg603/gatk_samtools_docker"
 #    String gatk_samtools_docker = "docker.io/weisburd/gatk-and-str-analysis:latest"
-    String gatk_samtools_docker = "docker.io/weisburd/gatk-and-str-analysis@sha256:1e119083cd66ce67dec3cd93432cbcb1c68410e3b57949c3b76777c3d11b83f9"
+#    String gatk_samtools_docker = "docker.io/weisburd/gatk-and-str-analysis@sha256:1e119083cd66ce67dec3cd93432cbcb1c68410e3b57949c3b76777c3d11b83f9"
+    String gatk_samtools_docker = "docker.io/tdurham86/gatk_samtools_str-analysis_dockerfile:mamba_flex_versions"
 
     #Optional runtime arguments
     Int? printreads_mem

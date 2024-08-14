@@ -18,5 +18,5 @@
   "MitochondriaPipelineWrapper.ref_dict": "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.dict",
   "MitochondriaPipelineWrapper.ref_fasta": "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta",
   "MitochondriaPipelineWrapper.ref_fasta_index": "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai",
-  "MitochondriaPipelineWrapper.gatk_override":"/gatk-4.2.6.0/gatk"
+  "MitochondriaPipelineWrapper.gatk_override":"/gatk-4.2.6.0/gatk-package-4.2.6.0-local.jar"
 }
