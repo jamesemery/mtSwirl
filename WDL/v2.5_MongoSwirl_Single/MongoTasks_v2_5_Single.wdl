@@ -58,7 +58,8 @@ task MongoSubsetBamToChrMAndRevert {
   }
   command <<<
     set -e
-    export GATK_LOCAL_JAR=~{default="/root/gatk.jar" gatk_override}
+#    export GATK_LOCAL_JAR=~{default="/root/gatk.jar" gatk_override}
+    export GATK_LOCAL_JAR=/home/mambauser/gatk-4.2.6.0/gatk-package-4.2.6.0-local.jar
     echo $PATH
 
     mkdir out
