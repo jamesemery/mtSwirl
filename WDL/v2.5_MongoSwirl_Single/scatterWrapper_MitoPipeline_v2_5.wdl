@@ -57,16 +57,12 @@ workflow MitochondriaPipelineWrapper {
 
     #Docker and version arguments
     String gatk_version = "4.2.6.0"
-    String? gatk_override
+    File? gatk_override
     String? gatk_docker_override
-    String ucsc_docker = "docker.io/rahulg603/ucsc_docker"
-    String genomes_cloud_docker = "docker.io/rahulg603/genomes_cloud_docker"
-    String haplochecker_docker = "docker.io/rahulg603/haplochecker_docker"
-#    String gatk_samtools_docker = "docker.io/rahulg603/gatk46_samtools"
-#    String gatk_samtools_docker = "docker.io/rahulg603/gatk_samtools_docker"
-#    String gatk_samtools_docker = "docker.io/weisburd/gatk-and-str-analysis:latest"
-#    String gatk_samtools_docker = "docker.io/weisburd/gatk-and-str-analysis@sha256:1e119083cd66ce67dec3cd93432cbcb1c68410e3b57949c3b76777c3d11b83f9"
-    String gatk_samtools_docker = "docker.io/tdurham86/gatk_samtools_str-analysis_dockerfile:mamba_flex_versions"
+    String ucsc_docker = "docker.io/rahulg603/ucsc_genome_toolkit"
+    String genomes_cloud_docker = "docker.io/rahulg603/genomes_cloud_bcftools"
+    String haplochecker_docker = "docker.io/rahulg603/haplochecker"
+    String gatk_samtools_docker = "docker.io/rahulg603/gatk46_samtools"
 
     #Optional runtime arguments
     Int? printreads_mem

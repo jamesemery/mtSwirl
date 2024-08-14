@@ -1,5 +1,16 @@
 {
   "MitochondriaPipelineWrapper.mt_interval_list": "gs://gcp-public-data--broad-references/hg38/v0/chrM/chrM.hg38.interval_list",
+  "MitochondriaPipelineWrapper.nuc_interval_list": "NUMTv3_all385.hg38.interval_list",
+  "MitochondriaPipelineWrapper.CheckVariantBoundsScript": "check_variant_bounds.R",
+  "MitochondriaPipelineWrapper.FaRenamingScript": "compatibilify_fa_intervals_consensus.R",
+  "MitochondriaPipelineWrapper.CheckHomOverlapScript": "check_overlapping_homoplasmies.R",
+  "MitochondriaPipelineWrapper.HailLiftover": "fix_liftover.py",
+  "MitochondriaPipelineWrapper.JsonTools": "jsontools.py",
+  "MitochondriaPipelineWrapper.MergePerBatch": "merge_per_batch.py",
+  "MitochondriaPipelineWrapper.ucsc_docker": "us-docker.pkg.dev/mito-wgs/mito-wgs-docker-repo/rgupta_ucsc_genome_toolkit",
+  "MitochondriaPipelineWrapper.genomes_cloud_docker": "us-docker.pkg.dev/mito-wgs/mito-wgs-docker-repo/rgupta_genomes_cloud_bcftools_hail",
+  "MitochondriaPipelineWrapper.haplochecker_docker": "us-docker.pkg.dev/mito-wgs/mito-wgs-docker-repo/rgupta_haplochecker",
+  "MitochondriaPipelineWrapper.gatk_samtools_docker": "us-docker.pkg.dev/mito-wgs/mito-wgs-docker-repo/rgupta_gatk4_6_0_samtools19",
   "MitochondriaPipelineWrapper.force_manual_download": false,
   "MitochondriaPipelineWrapper.compute_numt_coverage": false,
   "MitochondriaPipelineWrapper.skip_restore_hardclips": true,
@@ -17,6 +28,5 @@
   "MitochondriaPipelineWrapper.mt_fasta_index": "gs://gcp-public-data--broad-references/hg38/v0/chrM/Homo_sapiens_assembly38.chrM.fasta.fai",
   "MitochondriaPipelineWrapper.ref_dict": "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.dict",
   "MitochondriaPipelineWrapper.ref_fasta": "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta",
-  "MitochondriaPipelineWrapper.ref_fasta_index": "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai",
-  "MitochondriaPipelineWrapper.gatk_override":"/gatk-4.2.6.0/gatk-package-4.2.6.0-local.jar"
+  "MitochondriaPipelineWrapper.ref_fasta_index": "gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.fai"
 }

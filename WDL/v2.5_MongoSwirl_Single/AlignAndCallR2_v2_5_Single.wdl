@@ -43,7 +43,7 @@ workflow AlignAndCallR2 {
     File non_control_interval
     File control_shifted
 
-    String? gatk_override
+    File? gatk_override
     String? gatk_docker_override
     String gatk_version = "4.2.6.0"
     String? m2_extra_args

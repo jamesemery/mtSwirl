@@ -63,7 +63,7 @@ workflow MitochondriaPipeline {
 
     #Docker and version arguments
     String gatk_version = "4.2.6.0"
-    String? gatk_override
+    File? gatk_override
     String? gatk_docker_override
     String ucsc_docker
     String genomes_cloud_docker
