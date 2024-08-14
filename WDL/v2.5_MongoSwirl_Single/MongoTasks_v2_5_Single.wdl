@@ -59,7 +59,6 @@ task MongoSubsetBamToChrMAndRevert {
   command <<<
     set -e
     export GATK_LOCAL_JAR=~{default="/root/gatk.jar" gatk_override}
-    export PATH=/opt/conda/bin:$PATH
     echo $PATH
 
     mkdir out
