@@ -17,8 +17,8 @@ def reader(args):
 
 
 def import_and_cat_tables(directory_df, id_col, path_col, new_id_col, max_threads=2, filter_by=None, enforce_nonmiss=False):
-    ids = [x for _, x in directory_df[id_col].iteritems()]
-    directories = [x for _, x in directory_df[path_col].iteritems()]
+    ids = [x for _, x in directory_df[id_col].items()]
+    directories = [x for _, x in directory_df[path_col].items()]
     p = multiprocessing.Pool(processes=max_threads)
 
     to_subset_to = filter_by if filter_by is not None else ids
@@ -35,7 +35,7 @@ def import_and_cat_tables(directory_df, id_col, path_col, new_id_col, max_thread
 
     # ensure that all ids are found in the new df
     if enforce_nonmiss:
-        new_ids = [x for _, x in concatenated_df[new_id_col].iteritems()]
+        new_ids = [x for _, x in concatenated_df[new_id_col].items()]
         tf_found_new = all([x_old in new_ids for x_old in ids])
         tf_found_old = all([x_new in ids for x_new in new_ids])
         if not (tf_found_new and tf_found_old):
@@ -48,11 +48,11 @@ def main(pipeline_output_path, qc_stats_path, file_paths_table_output,
          per_sample_stats_output, file_paths_table_flat_output, per_sample_stats_flat_output):
 
     # import pipeline output file
-    pipeline_output_file = pd.read_csv(pipeline_output_path, sep='\t')
+    pipeline_output_file = pd.read_csv(pipeline_output_path, index_col=0, sep='\t')
     pipeline_output_file = pipeline_output_file.rename({'merged_calls': 'vcf', 
                                                         'merged_coverage':'coverage', 
                                                         'merged_statistics': 'stats', 
-                                                        'subpath_id':'batch'}, axis=1)
+                                                        'cromwell_id':'batch'}, axis=1)
 
     # download mito pipeline data
     print('Obtaining QC stats...')
