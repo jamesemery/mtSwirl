@@ -2,13 +2,13 @@
 import argparse
 import hail as hl
 
-temp_dir = "/home/jupyter"
-
-hl.init(
-  tmp_dir=temp_dir,
-  local_tmpdir=temp_dir,
-  spark_conf={"spark.local.dir": temp_dir}
-)
+#temp_dir = "/home/jupyter"
+#
+#hl.init(
+#  tmp_dir=temp_dir,
+#  local_tmpdir=temp_dir,
+#  spark_conf={"spark.local.dir": temp_dir}
+#)
 
 import logging
 import re
@@ -2127,7 +2127,7 @@ def main(args):  # noqa: D103
 #        mt = mt.checkpoint(f"{output_dir}/4.mt", overwrite=args.overwrite)
 
         logger.info("Annotating tRNA predictions...")
-#        mt = add_trna_predictions(mt)
+        mt = add_trna_predictions(mt)
 #        mt = mt.checkpoint(f"{output_dir}/5.mt", overwrite=args.overwrite)
 
         # If 'subset-to-gnomad-release' is set, 'age' and 'pop' are added by the add_gnomad_metadata function.
@@ -2135,15 +2135,15 @@ def main(args):  # noqa: D103
         if gnomad_subset:
             logger.info("Adding gnomAD metadata sample annotations...")
             mt = add_gnomad_metadata(mt)
-            mt = mt.checkpoint(f"{output_dir}/6.mt", overwrite=args.overwrite)
+#            mt = mt.checkpoint(f"{output_dir}/6.mt", overwrite=args.overwrite)
         else:
             logger.info("Checking for and adding age and pop annotations...")
             mt = add_age_and_pop(mt, participant_data)
-            mt = mt.checkpoint(f"{output_dir}/6.mt", overwrite=args.overwrite)
+#            mt = mt.checkpoint(f"{output_dir}/6.mt", overwrite=args.overwrite)
 
         logger.info("Adding variant context annotations...")
         mt = add_variant_context(mt)
-        mt = mt.checkpoint(f"{output_dir}/7.mt", overwrite=args.overwrite)
+#        mt = mt.checkpoint(f"{output_dir}/7.mt", overwrite=args.overwrite)
 
         # If specified, subet to only the gnomAD samples in the current release
         if gnomad_subset:
@@ -2157,17 +2157,17 @@ def main(args):  # noqa: D103
         mt, n_removed_overlap = filter_by_hom_overlap(
             mt, keep_all_samples, args.sample_stats
         )
-        mt = mt.checkpoint(f"{output_dir}/8.mt", overwrite=args.overwrite)
+#        mt = mt.checkpoint(f"{output_dir}/8.mt", overwrite=args.overwrite)
 
         logger.info("Checking for samples with low/high mitochondrial copy number...")
         mt, n_removed_below_cn, n_removed_above_cn = filter_by_copy_number(
             mt, keep_all_samples, max_cn
         )
-        mt = mt.checkpoint(f"{output_dir}/9.mt", overwrite=args.overwrite)
+#        mt = mt.checkpoint(f"{output_dir}/9.mt", overwrite=args.overwrite)
 
         logger.info("Checking for contaminated samples...")
         mt, n_contaminated = filter_by_contamination(mt, output_dir, keep_all_samples)
-        mt = mt.checkpoint(f"{output_dir}/10.mt", overwrite=args.overwrite)
+#        mt = mt.checkpoint(f"{output_dir}/10.mt", overwrite=args.overwrite)
 
         logger.info("Switch build and checkpoint...")
         # Switch build 37 to build 38
@@ -2175,7 +2175,7 @@ def main(args):  # noqa: D103
             locus=hl.locus("chrM", mt.locus.position, reference_genome="GRCh38"),
             alleles=mt.alleles
         )
-        mt = mt.checkpoint(f"{output_dir}/11.mt", overwrite=args.overwrite)
+#        mt = mt.checkpoint(f"{output_dir}/11.mt", overwrite=args.overwrite)
         # NOTE: at this stage there should still be no instances of hl.len(FT) == 0. Missing FT implies HL not called.
         # NOTE: all missing HL entries have missing FT. These are entries with low DP so cannot be called hom ref.
         mt = mt.checkpoint(f"{output_dir}/prior_to_vep.mt", overwrite=args.overwrite)
