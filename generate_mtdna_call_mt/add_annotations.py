@@ -6,7 +6,7 @@ import os
 import re
 import sys 
 
-sys.path.append('./')
+sys.path.append('./') #for some reason, the cwd is not in the PYTHONPATH
 #sys.path.append('/home/jupyter/')
 
 from collections import Counter
