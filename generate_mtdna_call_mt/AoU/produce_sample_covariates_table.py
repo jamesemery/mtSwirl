@@ -19,8 +19,10 @@ def get_covariates(stats_path, covar_path, dataset=os.getenv("WORKSPACE_CDR"),
                                        impute=True, 
                                        types={"s":"tstr"},
                                        min_partitions=50)
-        ht_samp_flat = ht_samp_flat.annotate(isFemale = hl.if_else(ht_samp_flat.sex_at_birth == 'Female', 1, 
-                                                        hl.if_else(ht_samp_flat.sex_at_birth == 'Male', 0, hl.missing(hl.tint32))))
+#        ht_samp_flat = ht_samp_flat.annotate(isFemale = hl.if_else(ht_samp_flat.sex_at_birth == 'Female', 1, 
+#                                                        hl.if_else(ht_samp_flat.sex_at_birth == 'Male', 0, hl.missing(hl.tint32))))
+        ht_samp_flat = ht_samp_flat.annotate(isFemale = hl.if_else(ht_samp_flat.sex_at_birth == 'F', 1, 
+                                                        hl.if_else(ht_samp_flat.sex_at_birth == 'M', 0, hl.missing(hl.tint32))))
 
         person_sql = f"""
         SELECT  person.person_id,
