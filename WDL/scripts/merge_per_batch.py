@@ -36,9 +36,9 @@ META_DICT = {
             "Type": "String",
         },
         "STR": {
-            "Description": "Variant is a short tandem repeat",
-            "Number": "0",
-            "Type": "Flag",
+            "Description": "Variant is a short tandem repeat. 1 if True, 0 if False.",
+            "Number": "1",
+            "Type": "Integer",
         },
         "STRQ": {
             "Description": "Phred-scaled quality that alt alleles in STRs are not polymerase slippage errors",
@@ -182,16 +182,25 @@ def run_variants(args):
             if x not in mt.entry:
                 mt = mt.annotate_entries(**{x: hl.missing(item_type)})
         mt = mt.select_entries("DP", "AD", *list(fields_of_interest.keys()), HL=mt.AF[0])
+        # tuples are if we should index to the 0th element of an array
+        info_of_interest = {'MPOS':('int32',True), 'AS_SB_TABLE':('str',False), 
+                            'STR':('int32',False), 'STRQ':('int32',False), 'RPA':('array<int32>',False)}
         mt = mt.annotate_entries(
             MQ=hl.float(mt.info["MMQ"][1]),
             TLOD=mt.info["TLOD"][0],
-            MPOS=mt.info["MPOS"][0],
-            AS_SB_TABLE=mt.info["AS_SB_TABLE"],
-            STR=mt.info["STR"],
-            STRQ=mt.info["STRQ"],
-            RPA=mt.info["RPA"],
             FT=hl.if_else(hl.len(mt.filters) == 0, {"PASS"}, mt.filters),
-        )        
+        )
+        for x, (item_type, to_index) in info_of_interest.items():
+            if x not in mt.info:
+                mt = mt.annotate_entries(**{x: hl.missing(item_type)})
+            else:
+                if to_index:
+                    mt = mt.annotate_entries(**{x: mt.info[x][0]})
+                else:
+                    mt = mt.annotate_entries(**{x: mt.info[x]})
+                if META_DICT['format'][x]['Type'] == 'Flag':
+                    # flag is not supported in FORMAT
+                    mt = mt.annotate_entries(**{x: hl.if_else(mt.info[x], 1, 0)})
         mt = mt.key_cols_by(s=sample)
         mt = mt.select_rows()
         mt_list.append(mt)
