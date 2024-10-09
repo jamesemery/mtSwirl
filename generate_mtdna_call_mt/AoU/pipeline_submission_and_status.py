@@ -21,7 +21,8 @@ import cromwell_run_monitor as crm
 def submit_cromwell_workflows(samples_df, run_name='test_pipeline2', batch_size=10, 
                               mtSwirl_root='/home/jupyter/mtSwirl_fork/mtSwirl/', 
                               num_to_submit=None, num_concurrent_crams=None,
-                              addl_sub_interval_sec=0):
+                              addl_sub_interval_sec=0, cromwell_timeout=60, 
+                              submission_retries=2):
     '''Takes a dataframe based on the srWGS manifest.csv file, and submits the CRAMs in that file for
     processing by the mtSwirl pipeline on Cromwell. Creates the inputs json file for each batch of 
     batch_size, saves the inputs to the workspace bucket in a directory called run_name,
@@ -167,11 +168,19 @@ def submit_cromwell_workflows(samples_df, run_name='test_pipeline2', batch_size=
             json.dump(batch_json, out)
 
         #submit the batch as a cromwell workflow
-        cmd_arg_list = ['cromshell', '-t', '60', '--no_turtle', '--machine_processable', 'submit', pipeline_wdl, batch_input_json]
+        cmd_arg_list = ['cromshell', '-t', str(cromwell_timeout), '--no_turtle', '--machine_processable', 'submit', pipeline_wdl, batch_input_json]
         batch_submission_cmd_uri = os.path.join(batch_root, 'batch_submission_cmd.txt')
         with cloud_fs.open(batch_submission_cmd_uri, 'w') as out:
             out.write(' '.join(cmd_arg_list) + '\n')
-        sub_resp = subprocess.run(cmd_arg_list, check=True, capture_output=True)
+        while True:
+            try:
+                sub_resp = subprocess.run(cmd_arg_list, check=True, capture_output=True)
+            except subprocess.CalledProcessError:
+                if submission_retries == 0:
+                    raise
+                submission_retries -= 1
+            else:
+                break
         sub_info = json.loads(sub_resp.stdout.decode())
         sub_id_txt_uri = os.path.join(batch_root, 'sub_id.txt')
         with cloud_fs.open(sub_id_txt_uri, 'w') as out:
