@@ -382,6 +382,50 @@ def resubmit_failed_workflow(samples_df_uri, cromwell_id_to_resubmit):
     print(f'Batch {os.path.basename(batch_uri)} resubmitted with workflow ID {sub_info["id"]}.')
     return samples_df
 
+def isolate_failed_shards(samples_df_uri, failed_workflows_list, cromwell_run_prefix='cromwell-execution'):
+    #get samples_df
+    samples_df = pandas.read_csv(samples_df_uri, index_col=0,
+                                 storage_options={'project':os.getenv('GOOGLE_PROJECT'), 'requester_pays':True})
+    
+    # iterate over workflow IDs and change any samples without a FAIL status in the Cromwell run
+    # to "Submission pending" status in the samples_df so that they can be packaged into a new
+    # batch and re-submitted
+    for crom_id in failed_workflows_list:
+        #check that this is a valid workflow id
+        if crom_id not in samples_df['cromwell_id'].values:
+            print(f'Workflow ID {crom_id} is not found. Skipping.')
+            continue
+
+        #get relevant subset of the samples_df
+        workflow_samples = samples_df.loc[samples_df['cromwell_id'] == crom_id].copy()
+
+        #check to be sure these are failed samples
+        workflow_status = workflow_samples['run_status'].unique()
+        if len(workflow_status) != 1 or workflow_status[0] != 'Failed':
+            print(f'Workflow {crom_id} has a status other than "Failed" (status: {", ".join(workflow_status)}). Skipping.')
+            continue
+
+        #get sample submission order for the requested workflow
+        samples_order_uri = os.path.join(workflow_samples['inputs_uri'].unique()[0], 'sample_name_list.txt')
+        samples_order = pandas.read_csv(samples_order_uri, header=None, 
+                                        storage_options={'project':os.getenv('GOOGLE_PROJECT'),
+                                                         'requester_pays':True})
+        
+        #get the table of metadata about the shards of this workflow
+        run_info = get_detailed_workflow_status(crom_id, cromwell_run_prefix=cromwell_run_prefix)[0]
+        
+        #identify the failed shards and update the status of the non-failed ones so they will 
+        # be resubmitted in a new batch
+        failed_idx = [int(elt.split('-')[-1]) for elt in run_info.loc[run_info['status'] == 'FAIL', 'shard'].values]
+        to_resub_idx = workflow_samples.loc[~workflow_samples['person_id'].isin(samples_order.iloc[failed_idx, 0].to_list())].index
+        samples_df.loc[to_resub_idx, 'run_status'] = 'Submission pending'
+        to_rev_idx = workflow_samples.loc[workflow_samples['person_id'].isin(samples_order.iloc[failed_idx, 0].to_list())].index
+        samples_df.loc[to_rev_idx, 'run_status'] = 'Manual review'
+
+    #save the results back to the cloud
+    samples_df.to_csv(samples_df_uri, storage_options={'project':os.getenv('GOOGLE_PROJECT'), 'requester_pays':True})
+    return samples_df
+
 def get_succeeded_job_metrics(samples_df_uri, run_name, force_reload=False):
     run_metrics_uri = os.path.join(os.getenv("WORKSPACE_BUCKET"), f'{run_name}/run_metrics.csv')
     run_metrics = {'cromwell_id':[],
