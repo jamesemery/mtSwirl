@@ -291,12 +291,13 @@ def check_status(workflow_status_url, token):
     r.raise_for_status()
     return r.json()
 
-def update_cromwell_status(sample_df_uri, verbose=True, quiet=False):
+def update_cromwell_status(sample_df_uri, verbose=True, quiet=False, cromwell_id_col='cromwell_id',
+                           status_col='run_status'):
     if quiet is True:
         verbose = False
     sample_df = pandas.read_csv(sample_df_uri, index_col=0,
                                 storage_options={'project':os.getenv('GOOGLE_PROJECT'), 'requester_pays':True})
-    to_check = sample_df.loc[~sample_df['run_status'].isin(['Submission pending', 'Succeeded', 'Failed', 'Manual review']), 'cromwell_id'].unique()
+    to_check = sample_df.loc[~sample_df[status_col].isin(['Submission pending', 'Succeeded', 'Failed', 'Manual review']), cromwell_id_col].unique()
     if not quiet:
         print(f'Updating status for {to_check.shape[0]} workflow ids.')
     workflow_status_urls, token = assemble_status_urls(to_check)
@@ -306,14 +307,14 @@ def update_cromwell_status(sample_df_uri, verbose=True, quiet=False):
         if verbose is True:
             print(crom_id)
         status_json = check_status(crom_url, token)
-        sample_df.loc[sample_df['cromwell_id'] == crom_id, 'run_status'] = status_json['status']
+        sample_df.loc[sample_df[cromwell_id_col] == crom_id, status_col] = status_json['status']
     sample_df.to_csv(sample_df_uri,
                      storage_options={'project':os.getenv('GOOGLE_PROJECT'),
                                       'requester_pays':True})
     if verbose is True:
         print('\n')
     if not quiet:
-        print(sample_df['run_status'].value_counts().to_string())
+        print(sample_df[status_col].value_counts().to_string())
     return sample_df
 
 def get_detailed_workflow_status(workflow_id, cromwell_run_prefix='cromwell-execution'):

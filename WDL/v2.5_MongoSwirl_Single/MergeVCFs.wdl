@@ -49,7 +49,7 @@ task MergeVCFsInternal {
     String genomes_cloud_docker
   }
 
-  Int disk_size = ceil(size(variant_vcf, "GB") + size(coverage_table, "GB") + size(statistics, "GB") * 2) + 20
+  Int disk_size = ceil(size(variant_vcf, "GB") * 2) + 20
 
   command <<<
     set -e
