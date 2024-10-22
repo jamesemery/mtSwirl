@@ -7,7 +7,7 @@ import re
 import sys 
 
 sys.path.append('./') #for some reason, the cwd is not in the PYTHONPATH
-#sys.path.append('/home/jupyter/')
+sys.path.append('/home/jupyter/')
 
 from collections import Counter
 from textwrap import dedent
@@ -31,6 +31,11 @@ from gnomad_mitochondria.pipeline.annotation_descriptions import (
 # Include NA in POPS to account for cases where population annotations are missing
 POPS = POPS["v3"]["genomes"]
 POPS.append("NA")
+
+#hl.init(tmp_dir="file:///tmp")
+#hl.init(tmp_dir=f"{os.environ['WORKSPACE_BUCKET']}/tmp",
+#        local_tmpdir="file:///tmp",
+#        spark_conf={"spark.local.dir": "file:///tmp"})
 
 RESOURCE_PATH = 'gcp-public-data--gnomad/resources/mitochondria'
 RESOURCES = {
