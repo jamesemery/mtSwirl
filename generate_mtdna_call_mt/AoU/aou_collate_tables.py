@@ -70,9 +70,28 @@ def main(pipeline_output_path, qc_stats_path, file_paths_table_output,
     basename_vcf = [os.path.dirname(x) for x in pipeline_output_file.vcf]
     basename_cov = [os.path.dirname(x) for x in pipeline_output_file.coverage]
     basename_stats = [os.path.dirname(x) for x in pipeline_output_file.stats]
-    if not all([(a == b) and (a == c) and (a == d) for a,b,c,d in zip(basename_log, basename_vcf, basename_cov, basename_stats)]):
+#    if not all([(a == b) and (a == c) and (a == d) for a,b,c,d in zip(basename_log, basename_vcf, basename_cov, basename_stats)]):
+    if not all([((b == c) and (b == d)) or (('MergeVCFs' in b) and (c == d)) 
+                for a,b,c,d in zip(basename_log, basename_vcf, basename_cov, basename_stats)]):
+        is_equal = [(b == c) and (b == d) for a,b,c,d in zip(basename_log, basename_vcf, basename_cov, basename_stats)]
+        idx_not_equal = [idx for idx, val in enumerate(is_equal) if not val]
+        print(len(idx_not_equal))
+        print(idx_not_equal)
+#        print(basename_log[idx_not_equal[0]])
+        print(basename_vcf[idx_not_equal[0]])
+        print(basename_cov[idx_not_equal[0]])
+        print(basename_stats[idx_not_equal[0]])
+#        print(basename_log[idx_not_equal[0]].strip() == basename_vcf[idx_not_equal[0]].strip())
+        print(basename_vcf[idx_not_equal[0]].strip() == basename_cov[idx_not_equal[0]].strip())
+        print(basename_vcf[idx_not_equal[0]].strip() == basename_stats[idx_not_equal[0]].strip())
         raise ValueError('ERROR: all files should have the same path within a batch.')
-    if not all([re.search(search, x) for x, search in zip(basename_vcf, pipeline_output_file.batch)]):
+    if not all([re.search(search, x) or ('MergeVCFs' in x) for x, search in zip(basename_vcf, pipeline_output_file.batch.to_list())]):
+        is_equal = [re.search(search, x) or ('MergeVCFs' in basename_vcf) for x, search in zip(basename_vcf, pipeline_output_file.batch.to_list())]
+        idx_not_equal = [idx for idx, val in enumerate(is_equal) if not val]
+        print(len(idx_not_equal))
+        print(idx_not_equal)
+        print(basename_vcf[idx_not_equal[0]])
+        print(pipeline_output_file.batch.to_list()[idx_not_equal[0]])
         raise ValueError('ERROR: all files should have paths matching the batch.')
 
     # import stats and qc and merge all into table
