@@ -339,7 +339,7 @@ def vcf_merging(vcf_paths: Dict[str, str], temp_dir: str, logger, chunk_size: in
             for batch, vcf_path in subset:
                 idx+=1
                 try:
-                    mt = hl.import_vcf(vcf_path, reference_genome="GRCh38")
+                    mt = hl.import_vcf(vcf_path, reference_genome="GRCh38", array_elements_required=False)
                 except Exception as e:
                     raise ValueError(
                         f"vcf path {vcf_path} does not exist for sample {batch}"
