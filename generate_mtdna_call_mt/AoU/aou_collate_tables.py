@@ -48,11 +48,12 @@ def main(pipeline_output_path, qc_stats_path, file_paths_table_output,
          per_sample_stats_output, file_paths_table_flat_output, per_sample_stats_flat_output):
 
     # import pipeline output file
-    pipeline_output_file = pd.read_csv(pipeline_output_path, index_col=0, sep='\t')
+    pipeline_output_file = pd.read_csv(pipeline_output_path, sep='\t')
     pipeline_output_file = pipeline_output_file.rename({'merged_calls': 'vcf', 
                                                         'merged_coverage':'coverage', 
                                                         'merged_statistics': 'stats', 
                                                         'cromwell_id':'batch'}, axis=1)
+    print('Loaded pipeline output file with shape', pipeline_output_file.shape, 'and columns', pipeline_output_file.columns.to_list())
 
     # download mito pipeline data
     print('Obtaining QC stats...')
