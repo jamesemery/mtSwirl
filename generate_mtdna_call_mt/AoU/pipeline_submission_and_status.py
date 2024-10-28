@@ -292,7 +292,7 @@ def check_status(workflow_status_url, token):
     return r.json()
 
 def update_cromwell_status(sample_df_uri, verbose=True, quiet=False, cromwell_id_col='cromwell_id',
-                           status_col='run_status'):
+                           status_col='run_status', no_write=False):
     if quiet is True:
         verbose = False
     sample_df = pandas.read_csv(sample_df_uri, index_col=0,
@@ -308,9 +308,10 @@ def update_cromwell_status(sample_df_uri, verbose=True, quiet=False, cromwell_id
             print(crom_id)
         status_json = check_status(crom_url, token)
         sample_df.loc[sample_df[cromwell_id_col] == crom_id, status_col] = status_json['status']
-    sample_df.to_csv(sample_df_uri,
-                     storage_options={'project':os.getenv('GOOGLE_PROJECT'),
-                                      'requester_pays':True})
+    if not no_write:
+        sample_df.to_csv(sample_df_uri,
+                         storage_options={'project':os.getenv('GOOGLE_PROJECT'),
+                                          'requester_pays':True})
     if verbose is True:
         print('\n')
     if not quiet:
@@ -439,9 +440,12 @@ def get_succeeded_job_metrics(samples_df_uri, run_name, force_reload=False):
                    'merged_coverage':[],
                    'merged_statistics':[]}
     #get samples_df
-    samples_df = pandas.read_csv(samples_df_uri, index_col=0,
-                                 storage_options={'project':os.getenv('GOOGLE_PROJECT'), 'requester_pays':True})
-    workflow_ids = samples_df.loc[samples_df['run_status'] == 'Succeeded', 'cromwell_id'].unique()
+    if isinstance(samples_df_uri, str):
+        samples_df = pandas.read_csv(samples_df_uri, index_col=0,
+                                     storage_options={'project':os.getenv('GOOGLE_PROJECT'), 'requester_pays':True})
+        workflow_ids = samples_df.loc[samples_df['run_status'] == 'Succeeded', 'cromwell_id'].unique()
+    else:
+        workflow_ids = samples_df_uri.loc[samples_df_uri['run_status'] == 'Succeeded', 'cromwell_id'].unique()
     #get run_metrics (if it already exists), otherwise just make it an empty version of the one we are building
     if not force_reload:
         try:
