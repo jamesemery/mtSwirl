@@ -285,7 +285,7 @@ def vcf_merging_and_processing(vcf_paths, coverage_mt_path, include_extra_v2_fie
         combined_mt = hl.read_matrix_table(output_path_mt)
     else:
         logger.info("Combining VCFs...")
-        combined_mt, meta = vcf_merging(vcf_paths=vcf_paths, temp_dir=temp_dir, logger=logger, chunk_size=chunk_size, 
+        combined_mt, meta = vcf_merging(vcf_paths=vcf_paths, temp_dir=temp_dir, logger=logger, n_final_partitions=n_final_partitions, chunk_size=chunk_size, 
                                         include_extra_v2_fields=include_extra_v2_fields, num_merges=num_merges,
                                         single_sample=single_sample)
         combined_mt = combined_mt.repartition(100).checkpoint(output_path_mt, overwrite=overwrite)
@@ -308,7 +308,7 @@ def vcf_merging_and_processing(vcf_paths, coverage_mt_path, include_extra_v2_fie
     return combined_mt, meta
 
 
-def vcf_merging(vcf_paths: Dict[str, str], temp_dir: str, logger, chunk_size: int = 100, include_extra_v2_fields: bool = False, num_merges: int = 1,
+def vcf_merging(vcf_paths: Dict[str, str], temp_dir: str, logger, n_final_partitions, chunk_size: int = 100, include_extra_v2_fields: bool = False, num_merges: int = 1,
                 single_sample: bool = False) -> hl.MatrixTable:
     """
     Reformat and join individual mitochondrial VCFs into one MatrixTable.
@@ -416,7 +416,7 @@ def vcf_merging(vcf_paths: Dict[str, str], temp_dir: str, logger, chunk_size: in
                         logger.info(f"Imported batch {str(idx)}...")
 
             combined_mt_this = multi_way_union_mts(mt_list, temp_dir, chunk_size, min_partitions=1, check_from_disk=False, prefix=this_prefix)
-            combined_mt_this = combined_mt_this.repartition(args.n_final_partitions // num_merges).checkpoint(this_subset_mt, overwrite=True)
+            combined_mt_this = combined_mt_this.repartition(n_final_partitions // num_merges).checkpoint(this_subset_mt, overwrite=True)
             mt_list_subsets.append(combined_mt_this)
     
     if num_merges == 1:
