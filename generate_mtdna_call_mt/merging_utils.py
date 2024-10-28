@@ -285,7 +285,7 @@ def vcf_merging_and_processing(vcf_paths, coverage_mt_path, include_extra_v2_fie
         combined_mt = hl.read_matrix_table(output_path_mt)
     else:
         logger.info("Combining VCFs...")
-        combined_mt, meta = vcf_merging(vcf_paths=vcf_paths, temp_dir=temp_dir, logger=logger, n_final_partitions=n_final_partitions, chunk_size=chunk_size, 
+        combined_mt, meta = vcf_merging(vcf_paths=vcf_paths, temp_dir=temp_dir, logger=logger, chunk_size=chunk_size, 
                                         include_extra_v2_fields=include_extra_v2_fields, num_merges=num_merges,
                                         single_sample=single_sample, n_final_partitions=n_final_partitions)
         combined_mt = combined_mt.repartition(100).checkpoint(output_path_mt, overwrite=overwrite)
