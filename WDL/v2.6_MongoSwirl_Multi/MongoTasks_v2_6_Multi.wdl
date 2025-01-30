@@ -122,10 +122,15 @@ task MongoSubsetBam {
   output {
     Object obj_out = read_json("out/jsonout.json")
     Array[String] samples = obj_out.samples
-    Array[File] subset_bam = obj_out.subset_bam
-    Array[File] subset_bai = obj_out.subset_bai
-    Array[File] idxstats_metrics = obj_out.idxstats_metrics
-    Array[File] flagstat_pre_metrics = obj_out.flagstat_pre_metrics
+
+    # Declare json explicitly
+    File json_out = "out/jsonout.json"
+
+    # Use glob() to track files correctly
+    Array[File] subset_bam = glob("out/*.bam")
+    Array[File] subset_bai = glob("out/*.bai")
+    Array[File] idxstats_metrics = glob("out/*.idxstats")
+    Array[File] flagstat_pre_metrics = glob("out/*.flagstat")
   }
 }
 
