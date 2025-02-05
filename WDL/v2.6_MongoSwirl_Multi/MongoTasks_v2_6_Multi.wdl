@@ -37,7 +37,7 @@ task MongoSubsetBam {
   Float ref_size = if defined(ref_fasta) then size(ref_fasta, "GB") + size(ref_fasta_index, "GB") + size(ref_dict, "GB") else 0
   Int addl_size = ceil((55 * length(sample_name)) / 1000)
   Int disk_size = ceil(ref_size) + ceil(size(input_bam,'GB')) + 20 + addl_size
-  Int machine_mem = select_first([mem, 4])
+  Int machine_mem = select_first([mem, 9])
   Int command_mem = (machine_mem * 1000) - 500
   Int nthreads = select_first([n_cpu,1])-1
   String requester_pays_prefix = (if defined(requester_pays_project) then "-u " else "") + select_first([requester_pays_project, ""])
@@ -100,7 +100,7 @@ task MongoSubsetBam {
           subset_bai="~{d}{this_sample}.bai" \
           idxstats_metrics="~{d}{this_sample}.stats.tsv" \
           flagstat_pre_metrics="~{d}{this_sample}.flagstat.pre.txt"
-      
+
       elif [ $thisexit -eq 1 ] && [ $SAMERRFAIL -eq 1 ]; then
         echo "Samtools exited with status ~{d}{thisexit} and ~{d}{SAMERR}."
         echo "Thus, sample ~{d}{sampleNames[i]} is skipped."
@@ -111,6 +111,7 @@ task MongoSubsetBam {
       fi
     
     done
+    find /path/to/folder -type f -name "*flagstat*"
   >>>
   runtime {
     memory: machine_mem + " GB"
@@ -128,8 +129,8 @@ task MongoSubsetBam {
     # Use glob() to track files correctly
     Array[File] subset_bam = glob("out/*.bam")
     Array[File] subset_bai = glob("out/*.bai")
-    Array[File] idxstats_metrics = glob("out/*.idxstats")
-    Array[File] flagstat_pre_metrics = glob("out/*.flagstat")
+    Array[File] idxstats_metrics = glob("**.idxstats")
+    Array[File] flagstat_pre_metrics = glob("**.flagstat")
   }
 }
 
