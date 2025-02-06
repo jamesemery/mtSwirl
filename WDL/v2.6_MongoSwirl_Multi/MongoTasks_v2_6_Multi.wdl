@@ -111,7 +111,7 @@ task MongoSubsetBam {
       fi
     
     done
-    find /path/to/folder -type f -name "*flagstat*"
+    find . -type f -name "*flagstat*"
   >>>
   runtime {
     memory: machine_mem + " GB"
