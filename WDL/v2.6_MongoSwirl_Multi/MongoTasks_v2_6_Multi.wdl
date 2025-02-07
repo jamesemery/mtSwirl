@@ -129,8 +129,8 @@ task MongoSubsetBam {
     # Use glob() to track files correctly
     Array[File] subset_bam = glob("out/*.bam")
     Array[File] subset_bai = glob("out/*.bai")
-    Array[File] idxstats_metrics = glob("**.idxstats")
-    Array[File] flagstat_pre_metrics = glob("**.flagstat")
+    Array[File] idxstats_metrics = glob("out/*.idxstats*")
+    Array[File] flagstat_pre_metrics = glob("out/*.flagstat*")
   }
 }
 
