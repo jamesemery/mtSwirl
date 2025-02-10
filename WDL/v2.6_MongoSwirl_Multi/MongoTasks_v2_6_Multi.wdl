@@ -2896,10 +2896,12 @@ task MongoLiftoverSelfAndCollectOutputs {
   output {
     Object obj_out = read_json("out/jsonout.json")
     Array[String] samples = obj_out.samples
-    Array[File] reference_coverage = obj_out.reference_coverage
-    Array[File] intermediate_bed = obj_out.intermediate_bed
-    Array[File] rejected = obj_out.rejected
-    Array[File] table = obj_out.table
+
+    # Declare the Json fields explicitly
+    Array[File] reference_coverage = glob("out/*.appended.liftedOver.tsv")
+    Array[File] intermediate_bed = glob("out/*.liftedOver.bed")
+    Array[File] rejected = glob("out/*.liftedOver.unmapped")
+    Array[File] table = glob("out/*_mtanalysis_diagnostic_statistics.tsv")
   }
 
   runtime {
