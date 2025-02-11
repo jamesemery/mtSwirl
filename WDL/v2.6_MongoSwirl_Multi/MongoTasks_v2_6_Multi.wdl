@@ -322,6 +322,7 @@ task MongoProcessBamAndRevert {
     Array[File] unmapped_bam = glob("out/*.unmap.bam")
     Array[File] duplicate_metrics = glob("out/*.duplicate.metrics")
     Array[File] yield_metrics = glob("out/*.yield_metrics.txt")
+    Array[Int] reads_dropped = obj_out.reads_dropped
     Array[Int] mean_coverage = obj_out.mean_coverage
     Int max_mean_coverage = ceil(read_float("this_max.txt"))
   }
