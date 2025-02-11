@@ -316,12 +316,14 @@ task MongoProcessBamAndRevert {
   output {
     Object obj_out = read_json("out/jsonout.json")
     Array[String] samples = obj_out.samples
-    Array[File] output_bam = obj_out.output_bam
-    Array[File] output_bai = obj_out.output_bai
-    Array[File] unmapped_bam = obj_out.unmapped_bam
-    Array[File] duplicate_metrics = obj_out.duplicate_metrics
-    Array[File] yield_metrics = obj_out.yield_metrics
-    Array[Int] reads_dropped = obj_out.reads_dropped
+
+    # Declare the output uploads manually
+    Array[File] output_bam = glob("out/*.proc.bam")
+    Array[File] output_bai = glob("out/*.proc.bai")
+    Array[File] unmapped_bam = glob("out/*.unmap.bam")
+    Array[File] duplicate_metrics = glob("out/*.duplicate.metrics")
+    Array[File] yield_metrics = glob("out/*.yield_metrics.txt")
+
     Array[Int] mean_coverage = obj_out.mean_coverage
     Int max_mean_coverage = ceil(read_float("this_max.txt"))
   }
