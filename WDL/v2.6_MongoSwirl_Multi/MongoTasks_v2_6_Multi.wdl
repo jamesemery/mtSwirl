@@ -1452,6 +1452,8 @@ task MongoRunM2InitialFilterSplit {
   command <<<
     set -e
 
+
+
     export GATK_LOCAL_JAR=~{default="/root/gatk.jar" gatk_override}
     echo "Extra arguments for mutect2: ""~{m2_extra_args}""$cust_interval"
 
@@ -1470,7 +1472,25 @@ task MongoRunM2InitialFilterSplit {
     mkdir out
 
     sampleNames=('~{sep="' '" sample_name}')
-    bams=('~{sep="' '" input_bam}')
+
+    # Declare an empty bash array to hold updated BAM paths
+    declare -a bams
+
+    # Move BAM files and store new paths in the array
+    for bam in ~{sep=" " input_bam}; do
+    new_bam="./$(basename $bam)"
+    mv "$bam" "$new_bam"
+    bams+=("$new_bam")  # Append new BAM path to array
+    done
+    for bai in ~{sep=" " input_bai}; do
+    mv "~{d}bai" "./~{d}(basename ~{d}bai)"
+    done
+
+    # Verify that files are now in the execution directory
+    echo "Files after moving:"
+    ls -lah
+
+    export GATK_LOCAL_JAR=~{default="/root/gatk.jar" gatk_override}
 
     for i in "~{d}{!sampleNames[@]}"; do
 
