@@ -1079,32 +1079,14 @@ task MongoHC {
   String d = "$" # a stupid trick to get ${} indexing in bash to work in Cromwell
 
   command <<<
-    set -euo pipefail
+    set -e
 
-    # Debugging: Print working directory and list all input files
-    echo "Current working directory: $(pwd)"
-    ls -lah
-
-    # Move all input BAM and BAI files to the root execution directory
-    for bam in ~{sep=" " input_bam}; do
-    mv "$bam" "./$(basename $bam)"
-    done
-
-    for bai in ~{sep=" " input_bai}; do
-    mv "$bai" "./$(basename $bai)"
-    done
-
-    # Verify that files are now in the execution directory
-    echo "Files after moving:"
-    ls -lah
-
-    # Set up GATK JAR path
     export GATK_LOCAL_JAR=~{default="/root/gatk.jar" gatk_override}
 
     mkdir out
 
     sampleNames=('~{sep="' '" sample_name}')
-    bams=('~{sep="' '" basename(input_bam)}')
+    bams=('~{sep="' '" input_bam}')
 
     for i in "~{d}{!sampleNames[@]}"; do
 
