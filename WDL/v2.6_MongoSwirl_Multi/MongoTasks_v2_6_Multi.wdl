@@ -1078,12 +1078,21 @@ task MongoHC {
   command <<<
     set -e
 
-    export GATK_LOCAL_JAR=~{default="/root/gatk.jar" gatk_override}
+    # Debugging: Print working directory and list all input files
+    echo "Current working directory: $(pwd)"
+    ls -lah
 
-    mkdir out
+    # Move all input BAM and BAI files to the root execution directory
+    for bam in ~{sep=" " input_bam}; do
+    mv "$bam" "./$(basename $bam)"
+    done
 
-    sampleNames=('~{sep="' '" sample_name}')
-    bams=('~{sep="' '" input_bam}')
+    for bai in ~{sep=" " input_bai}; do
+    mv "$bai" "./$(basename $bai)"
+    done
+
+    # Verify that files are now in the execution directory
+    echo "Files after moving:"
 
     for i in "~{d}{!sampleNames[@]}"; do
 
