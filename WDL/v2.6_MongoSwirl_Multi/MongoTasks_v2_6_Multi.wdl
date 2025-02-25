@@ -1082,11 +1082,15 @@ task MongoHC {
     echo "Current working directory: $(pwd)"
     ls -lah
 
-    # Move all input BAM and BAI files to the root execution directory
-    for bam in ~{sep=" " input_bam}; do
-    mv "~{d}bam" "./~{d}(basename ~{d}bam)"
-    done
+    # Declare an empty bash array to hold updated BAM paths
+    declare -a bams
 
+    # Move BAM files and store new paths in the array
+    for bam in ~{sep=" " input_bam}; do
+       new_bam="./$(basename $bam)"
+       mv "$bam" "$new_bam"
+       bams+=("$new_bam")  # Append new BAM path to array
+    done
     for bai in ~{sep=" " input_bai}; do
     mv "~{d}bai" "./~{d}(basename ~{d}bai)"
     done
@@ -1094,6 +1098,10 @@ task MongoHC {
     # Verify that files are now in the execution directory
     echo "Files after moving:"
     ls -lah
+
+    export GATK_LOCAL_JAR=~{default="/root/gatk.jar" gatk_override}
+    mkdir out
+    sampleNames=('~{sep="' '" sample_name}')
 
     for i in "~{d}{!sampleNames[@]}"; do
 
