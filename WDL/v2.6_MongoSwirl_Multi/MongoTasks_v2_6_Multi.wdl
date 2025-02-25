@@ -1084,15 +1084,16 @@ task MongoHC {
 
     # Move all input BAM and BAI files to the root execution directory
     for bam in ~{sep=" " input_bam}; do
-    mv "$bam" "./$(basename $bam)"
+    mv "~{d}bam" "./~{d}(basename ~{d}bam)"
     done
 
     for bai in ~{sep=" " input_bai}; do
-    mv "$bai" "./$(basename $bai)"
+    mv "~{d}bai" "./~{d}(basename ~{d}bai)"
     done
 
     # Verify that files are now in the execution directory
     echo "Files after moving:"
+    ls -lah
 
     for i in "~{d}{!sampleNames[@]}"; do
 
