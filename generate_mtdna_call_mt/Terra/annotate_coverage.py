@@ -48,14 +48,14 @@ def main(args):  # noqa: D103
                               n_read_partitions=args.n_read_partitions, n_final_partitions=args.n_final_partitions, 
                               keep_targets=keep_targets, logger=logger, temp_dir=temp_dir, no_batch_mode=True)
     
-    if args.append_to_existing is not None:
-        logger.info('Appending coverage table to existing MT.')
+    #if args.append_to_existing is not None:
+    #    logger.info('Appending coverage table to existing MT.')
 
-        old_mt_path = args.append_to_existing
+     #   old_mt_path = args.append_to_existing
 
-        cov_mt = append_coverage_to_old(cov_mt, old_mt_path, col_keep=[],
+      #  cov_mt = append_coverage_to_old(cov_mt, old_mt_path, col_keep=[],
                                         n_final_partitions=args.n_final_partitions, temp_dir=temp_dir)
-        logger.info('Coverage table successfully appended.')
+       # logger.info('Coverage table successfully appended.')
     
     logger.info("Adding coverage annotations...")
     # Calculate the mean and median coverage as well the fraction of samples above 100x or 1000x coverage at each base
