@@ -2,10 +2,11 @@
 import argparse
 import hail as hl
 import logging
+import os
 import re
-import sys
+import sys 
 
-import sys, os
+sys.path.append('./') #for some reason, the cwd is not in the PYTHONPATH
 sys.path.append('/home/jupyter/')
 
 from collections import Counter
@@ -41,7 +42,7 @@ RESOURCES = {
     "variant_context": f"gs://{RESOURCE_PATH}/variant_context/chrM_pos_ref_alt_context_categories.txt",
     "phylotree": f"gs://{RESOURCE_PATH}/phylotree/rCRS-centered_phylo_vars_final_update.txt",
     "pon_mt_trna": f"gs://{RESOURCE_PATH}/trna_predictions/pon_mt_trna_predictions_08_27_2020.txt",
-    "mitotip": f"gs://{RESOURCE_PATH}/trna_predictions/mitotip_scores_08_27_2020.txt",
+    "mitotip": f"gs://{RESOURCE_PATH}/trna_predictions/mitotip_scores_08_27_2020.txt"
 }
 
 LIFTOVERFILTERS = set(['NoTarget','MismatchedRefAllele','IndelStraddlesMultipleIntevals'])
@@ -54,7 +55,7 @@ CUSTOMLIFTOVERFILTERS = set(['FailedPicardLiftoverVcf', 'InsertionSharesForceCal
 
 logging.basicConfig(
     format="%(asctime)s (%(name)s %(lineno)s): %(message)s",
-    datefmt="%m/%d/%Y %I:%M:%S %p",
+    datefmt="%m/%d/%Y %I:%M:%S %p"
 )
 logger = logging.getLogger("add annotations")
 logger.setLevel(logging.INFO)
@@ -90,7 +91,7 @@ def add_genotype(mt_path: str, min_hom_threshold: float = 0.95) -> hl.MatrixTabl
             .when(mt.HL >= min_hom_threshold, hl.parse_call("1/1"))
             .when(mt.HL == 0, hl.parse_call("0/0"))
             .default(hl.missing(hl.tcall))
-        ),
+        )
     )
 
     return mt
@@ -114,7 +115,7 @@ def add_variant_context(input_mt: hl.MatrixTable) -> hl.MatrixTable:
         ref=vc_ht["POS.REF.ALT"].split(r"\.")[1],
         alt=vc_ht["POS.REF.ALT"].split(r"\.")[2],
         strand=vc_ht.Context_category.split("_")[-1],
-        variant=vc_ht.Context_category.split("_")[0],
+        variant=vc_ht.Context_category.split("_")[0]
     )
 
     # Rename and select certain columns
@@ -124,7 +125,7 @@ def add_variant_context(input_mt: hl.MatrixTable) -> hl.MatrixTable:
     # Key by locus and allele
     vc_ht = vc_ht.key_by(
         locus=hl.locus("MT", vc_ht.pos, reference_genome="GRCh37"),
-        alleles=[vc_ht.ref, vc_ht.alt],
+        alleles=[vc_ht.ref, vc_ht.alt]
     )
 
     # Annotate original mt with variant context information
@@ -160,10 +161,10 @@ def add_gnomad_metadata(input_mt: hl.MatrixTable) -> hl.MatrixTable:
         age=hl.if_else(
             hl.is_defined(genome_meta_struct.project_meta.age),
             genome_meta_struct.project_meta.age,
-            genome_meta_struct.project_meta.age_alt,
+            genome_meta_struct.project_meta.age_alt
         ),
         broad_external=genome_meta_struct.project_meta.broad_external,
-        pop=genome_meta_struct.population_inference.pop,
+        pop=genome_meta_struct.population_inference.pop
     )
 
     return input_mt
@@ -179,7 +180,7 @@ def add_age_and_pop(input_mt: hl.MatrixTable, participant_data: str) -> hl.Matri
     :return: MatrixTable with select age and pop annotations added
     """
     ht = hl.import_table(
-        participant_data, types={"age": hl.tint32, "pop": hl.tstr},
+        participant_data, types={"age": hl.tint32, "pop": hl.tstr}
     ).key_by("s")
 
     ht = ht.select("age", "pop")
@@ -223,7 +224,7 @@ def filter_by_copy_number(
         / hl.if_else(
             hl.is_missing(input_mt.wgs_median_coverage),
             30,
-            input_mt.wgs_median_coverage,
+            input_mt.wgs_median_coverage
         )
     )
     n_removed_below_cn = input_mt.aggregate_cols(
@@ -277,15 +278,15 @@ def filter_by_contamination(
         ),
         bt_85_and_99_count=hl.agg.filter(
             over_85_expr & (input_mt.HL <= 0.998),
-            hl.agg.count_where(hl.is_defined(input_mt.HL)),
-        ),
+            hl.agg.count_where(hl.is_defined(input_mt.HL))
+        )
     )
 
     input_mt = input_mt.annotate_cols(
         contam_high_het=hl.if_else(
             input_mt.bt_85_and_99_count >= 3,
             1 - input_mt.bt_85_and_99_mean,
-            1 - input_mt.over_85_mean,
+            1 - input_mt.over_85_mean
         )
     )
 
@@ -302,7 +303,7 @@ def filter_by_contamination(
         hl.agg.filter(
             (input_mt.contam_high_het > (0.02 - epsilon))
             & (input_mt.contam_high_het < (0.02 + epsilon)),
-            hl.agg.collect((input_mt.s)),
+            hl.agg.collect((input_mt.s))
         )
     )
 
@@ -329,7 +330,7 @@ def filter_by_contamination(
         "over_85_count",
         "bt_85_and_99_mean",
         "bt_85_and_99_count",
-        "keep",
+        "keep"
     )
     data_export = sample_data.cols()
     data_export.export(f"{output_dir}/sample_contamination.tsv")
@@ -373,9 +374,9 @@ def add_terra_metadata(
             "contamination": hl.tfloat64,
             "freemix_percentage": hl.tfloat64,
             "mt_mean_coverage": hl.tfloat64,
-            "wgs_median_coverage": hl.tfloat64,
+            "wgs_median_coverage": hl.tfloat64
         },
-        missing=["","NA"],
+        missing=["","NA"]
     ).key_by("s")
     ht = ht.rename({"entity:participant_id": "participant_id"})
 
@@ -385,7 +386,7 @@ def add_terra_metadata(
         "freemix_percentage",
         "major_haplogroup",
         "wgs_median_coverage",
-        "mt_mean_coverage",
+        "mt_mean_coverage"
     )
 
     input_mt = input_mt.annotate_cols(**ht[input_mt.s])
@@ -396,7 +397,7 @@ def add_terra_metadata(
             input_mt.major_haplogroup.startswith("HV")
             | input_mt.major_haplogroup.startswith("L"),
             input_mt.major_haplogroup[0:2],
-            input_mt.major_haplogroup[0],
+            input_mt.major_haplogroup[0]
         )
     )
 
@@ -474,7 +475,7 @@ def add_trna_predictions(input_mt: hl.MatrixTable, avoid_fasta_workaround: bool)
         alt=hl.if_else(
             pon_predictions.Reference_nucleotide == pon_predictions.ref,
             pon_predictions.New_nucleotide,
-            hl.reverse_complement(pon_predictions.New_nucleotide),
+            hl.reverse_complement(pon_predictions.New_nucleotide)
         )
     )
     pon_predictions = pon_predictions.key_by(
@@ -488,7 +489,7 @@ def add_trna_predictions(input_mt: hl.MatrixTable, avoid_fasta_workaround: bool)
         .replace(" ", "_"),
         pon_ml_probability_of_pathogenicity=hl.float(
             pon_predictions[input_mt.variant_collapsed].ML_probability_of_pathogenicity
-        ),
+        )
     )
 
     # Add MitoTIP predictions
@@ -510,11 +511,11 @@ def add_trna_predictions(input_mt: hl.MatrixTable, avoid_fasta_workaround: bool)
             .when(input_mt.mitotip_score > 16.25, "likely_pathogenic")
             .when(
                 (input_mt.mitotip_score <= 16.25) & (input_mt.mitotip_score > 12.66),
-                "possibly_pathogenic",
+                "possibly_pathogenic"
             )
             .when(
                 (input_mt.mitotip_score <= 12.66) & (input_mt.mitotip_score >= 8.44),
-                "possibly_benign",
+                "possibly_benign"
             )
             .when((input_mt.mitotip_score < 8.44), "likely_benign")
             .or_missing()
@@ -597,13 +598,13 @@ def generate_expressions(
     pre_hap_HL_hist = hl.agg.group_by(input_mt.hap, HL_hist.bin_freq)
     pre_hap_FAF = hl.agg.group_by(
         input_mt.hap,
-        hl.experimental.filtering_allele_frequency(hl.int32(AC), hl.int32(AN), 0.95),
+        hl.experimental.filtering_allele_frequency(hl.int32(AC), hl.int32(AN), 0.95)
     )
     pre_hap_FAF_hom = hl.agg.group_by(
         input_mt.hap,
         hl.experimental.filtering_allele_frequency(
             hl.int32(AC_hom), hl.int32(AN), 0.95
-        ),
+        )
     )
 
     # population annotations
@@ -646,7 +647,7 @@ def generate_expressions(
         pre_pop_AF_het=pre_pop_AF_het,
         pre_pop_AC_hom=pre_pop_AC_hom,
         pre_pop_AF_hom=pre_pop_AF_hom,
-        pre_pop_hl_hist=pre_pop_HL_hist,
+        pre_pop_hl_hist=pre_pop_HL_hist
     )
 
 
@@ -702,7 +703,7 @@ def add_quality_histograms(input_mt: hl.MatrixTable) -> hl.MatrixTable:
     input_mt = input_mt.annotate_globals(
         dp_hist_all_variants_bin_freq=dp_hist_all_variants.bin_freq,
         dp_hist_all_variants_n_larger=dp_hist_all_variants.n_larger,
-        dp_hist_all_variants_bin_edges=dp_hist_all_variants.bin_edges,
+        dp_hist_all_variants_bin_edges=dp_hist_all_variants.bin_edges
     )
 
     mq_hist_all_variants = input_mt.aggregate_rows(
@@ -711,7 +712,7 @@ def add_quality_histograms(input_mt: hl.MatrixTable) -> hl.MatrixTable:
     input_mt = input_mt.annotate_globals(
         mq_hist_all_variants_bin_freq=mq_hist_all_variants.bin_freq,
         mq_hist_all_variants_n_larger=mq_hist_all_variants.n_larger,
-        mq_hist_all_variants_bin_edges=mq_hist_all_variants.bin_edges,
+        mq_hist_all_variants_bin_edges=mq_hist_all_variants.bin_edges
     )
 
     tlod_hist_all_variants = input_mt.aggregate_rows(
@@ -720,7 +721,7 @@ def add_quality_histograms(input_mt: hl.MatrixTable) -> hl.MatrixTable:
     input_mt = input_mt.annotate_globals(
         tlod_hist_all_variants_bin_freq=tlod_hist_all_variants.bin_freq,
         tlod_hist_all_variants_n_larger=tlod_hist_all_variants.n_larger,
-        tlod_hist_all_variants_bin_edges=tlod_hist_all_variants.bin_edges,
+        tlod_hist_all_variants_bin_edges=tlod_hist_all_variants.bin_edges
     )
 
     # Generate histogram for overall age distribution
@@ -731,7 +732,7 @@ def add_quality_histograms(input_mt: hl.MatrixTable) -> hl.MatrixTable:
         age_hist_all_samples_bin_freq=age_hist_all_samples.bin_freq,
         age_hist_all_samples_n_larger=age_hist_all_samples.n_larger,
         age_hist_all_samples_n_smaller=age_hist_all_samples.n_smaller,
-        age_hist_all_samples_bin_edges=age_hist_all_samples.bin_edges,
+        age_hist_all_samples_bin_edges=age_hist_all_samples.bin_edges
     )
 
     # Add age histograms per variant type (heteroplasmic or homoplasmic)
@@ -764,7 +765,7 @@ def add_annotations_by_hap_and_pop(input_mt: hl.MatrixTable, output_dir, overwri
         "pre_hap_AN",
         "pre_hap_AF",
         "pre_hap_AC_het",
-        "pre_hap_AC_hom",
+        "pre_hap_AC_hom"
     ]
     for_annot = {re.sub("pre_", "", i): standardize_haps(input_mt, i, sorted(list_hap_order)) for i in pre_hap_annotation_labels_1}
     input_mt = input_mt.annotate_rows(**for_annot)
@@ -775,7 +776,7 @@ def add_annotations_by_hap_and_pop(input_mt: hl.MatrixTable, output_dir, overwri
         "pre_hap_AF_het",
         "pre_hap_hl_hist",
         "pre_hap_faf",
-        "pre_hap_faf_hom",
+        "pre_hap_faf_hom"
     ]
     for_annot = {re.sub("pre_", "", i): standardize_haps(input_mt, i, sorted(list_hap_order)) for i in pre_hap_annotation_labels_2}
     input_mt = input_mt.annotate_rows(**for_annot)
@@ -793,7 +794,7 @@ def add_annotations_by_hap_and_pop(input_mt: hl.MatrixTable, output_dir, overwri
     # Calculate hapmax
     input_mt = input_mt.annotate_rows(
         hapmax_AF_hom=input_mt.hap_order[(hl.argmax(input_mt.hap_AF_hom, unique=True))],
-        hapmax_AF_het=input_mt.hap_order[(hl.argmax(input_mt.hap_AF_het, unique=True))],
+        hapmax_AF_het=input_mt.hap_order[(hl.argmax(input_mt.hap_AF_het, unique=True))]
     )
 
     # Calculate faf hapmax
@@ -817,7 +818,7 @@ def add_annotations_by_hap_and_pop(input_mt: hl.MatrixTable, output_dir, overwri
         "pre_pop_AC_hom",
         "pre_pop_AF_hom",
         "pre_pop_AF_het",
-        "pre_pop_hl_hist",
+        "pre_pop_hl_hist"
     ]
 
     for i in pre_pop_annotation_labels:
@@ -846,7 +847,7 @@ def add_annotations_by_hap_and_pop(input_mt: hl.MatrixTable, output_dir, overwri
         "pre_pop_AC_hom",
         "pre_pop_AF_hom",
         "pre_pop_AF_het",
-        "pre_pop_hl_hist",
+        "pre_pop_hl_hist"
     ]
 
     input_mt = input_mt.drop(*annotations_to_drop)
@@ -859,7 +860,7 @@ def add_annotations_by_hap_and_pop(input_mt: hl.MatrixTable, output_dir, overwri
         "hap_faf",
         "faf_hapmax",
         "alt_haps",
-        "n_alt_haps",
+        "n_alt_haps"
     )
 
     input_mt = input_mt.annotate_rows(filters=input_mt.filters.difference({"PASS"}))
@@ -971,14 +972,14 @@ def apply_indel_stack_filter(input_mt: hl.MatrixTable) -> hl.MatrixTable:
                     indel_expr
                     & (input_mt.indel_pos_counter.get(input_mt.locus.position) >= 2)
                 ),
-                "stack",
+                "stack"
             )
             .when(
                 (
                     indel_expr
                     & (input_mt.indel_pos_counter.get(input_mt.locus.position) == 1)
                 ),
-                "solo",
+                "solo"
             )
             .or_missing()
         )
@@ -990,7 +991,7 @@ def apply_indel_stack_filter(input_mt: hl.MatrixTable) -> hl.MatrixTable:
             hl.agg.any(input_mt.indel_occurences == "stack")
             & ~hl.agg.any(input_mt.indel_occurences == "solo"),
             input_mt.filters.add("indel_stack"),
-            input_mt.filters,
+            input_mt.filters
         )
     )
 
@@ -1014,7 +1015,7 @@ def filter_genotypes_below_min_het_threshold(
         FT=hl.if_else(
             (input_mt.HL < min_het_threshold) & (input_mt.GT.is_het()),
             input_mt.FT.add("heteroplasmy_below_min_het_threshold"),
-            input_mt.FT,
+            input_mt.FT
         )
     )
 
@@ -1036,7 +1037,7 @@ def apply_npg_filter(input_mt: hl.MatrixTable) -> hl.MatrixTable:
         filters=hl.if_else(
             ~(hl.agg.any((input_mt.HL > 0.0) & (input_mt.FT == {"PASS"}))),
             input_mt.filters.add("npg"),
-            input_mt.filters,
+            input_mt.filters
         )
     )
 
@@ -1154,7 +1155,7 @@ def filter_genotypes(input_mt: hl.MatrixTable, pass_set: set = {}) -> hl.MatrixT
         #FT=hl.or_missing(pass_expr, input_mt.FT),
         #FT_LIFT=hl.or_missing(pass_expr, input_mt.FT_LIFT),
         MQ=hl.or_missing(pass_expr, input_mt.MQ),
-        TLOD=hl.or_missing(pass_expr, input_mt.TLOD),
+        TLOD=hl.or_missing(pass_expr, input_mt.TLOD)
     )
 
     input_mt = input_mt.annotate_entries(FT = hl.if_else(input_mt.FT == {'PASS'}, input_mt.FT.union({'GT_PASS'}), input_mt.FT))
@@ -1191,13 +1192,13 @@ def add_sample_annotations(
             hl.agg.count_where(
                 (input_mt.AC_het == 1)
                 & ((input_mt.HL < min_hom_threshold) & (input_mt.HL > 0.0))
-            ),
+            )
         ),
         n_singletons_hom=hl.agg.filter(
             filter_expr,
             hl.agg.count_where(
                 (input_mt.AC_hom == 1) & (input_mt.HL >= min_hom_threshold)
-            ),
+            )
         ),
         n_snp_het=hl.agg.filter(
             filter_expr,
@@ -1205,14 +1206,14 @@ def add_sample_annotations(
                 (input_mt.HL < min_hom_threshold)
                 & (input_mt.HL > 0.0)
                 & hl.is_snp(input_mt.alleles[0], input_mt.alleles[1])
-            ),
+            )
         ),
         n_snp_hom=hl.agg.filter(
             filter_expr,
             hl.agg.count_where(
                 (input_mt.HL >= min_hom_threshold)
                 & hl.is_snp(input_mt.alleles[0], input_mt.alleles[1])
-            ),
+            )
         ),
         n_indel_het=hl.agg.filter(
             filter_expr,
@@ -1220,15 +1221,15 @@ def add_sample_annotations(
                 (input_mt.HL < min_hom_threshold)
                 & (input_mt.HL > 0.0)
                 & (~hl.is_snp(input_mt.alleles[0], input_mt.alleles[1]))
-            ),
+            )
         ),
         n_indel_hom=hl.agg.filter(
             filter_expr,
             hl.agg.count_where(
                 (input_mt.HL >= min_hom_threshold)
                 & (~hl.is_snp(input_mt.alleles[0], input_mt.alleles[1]))
-            ),
-        ),
+            )
+        )
     )
 
     return input_mt
@@ -1334,7 +1335,7 @@ def export_simplified_variants(input_ht: hl.Table, output_dir: str) -> None:
             chromosome=input_ht.locus.contig,
             position=input_ht.locus.position,
             ref=input_ht.alleles[0],
-            alt=input_ht.alleles[1],
+            alt=input_ht.alleles[1]
         )
         .select("filters", "AC_hom", "AC_het", "AF_hom", "AF_het", "AN", "max_hl")
         .rename({"max_hl": "max_observed_heteroplasmy"})
@@ -1343,7 +1344,7 @@ def export_simplified_variants(input_ht: hl.Table, output_dir: str) -> None:
         filters=hl.if_else(
             hl.len(reduced_ht.filters) == 0,
             "PASS",
-            hl.str(",").join(hl.array(reduced_ht.filters)),
+            hl.str(",").join(hl.array(reduced_ht.filters))
         )
     )
 
@@ -1463,7 +1464,7 @@ def report_stats(
             ),
             transversions=hl.agg.count_where(
                 hl.is_transversion(input_mt.alleles[0], input_mt.alleles[1])
-            ),
+            )
         )
     )
 
@@ -1471,7 +1472,7 @@ def report_stats(
     col_stats = input_mt.aggregate_cols(
         hl.struct(
             unique_haplogroups=hl.len(hl.agg.collect_as_set(input_mt.major_haplogroup)),
-            unique_top_level_haplogroups=hl.len(hl.agg.collect_as_set(input_mt.hap)),
+            unique_top_level_haplogroups=hl.len(hl.agg.collect_as_set(input_mt.hap))
         )
     )
 
@@ -1484,7 +1485,7 @@ def report_stats(
                 (input_mt.HL < min_hom_threshold) & (input_mt.HL >= min_het_threshold)
             ),
             min_hl=hl.agg.filter(input_mt.HL > 0, hl.agg.min(input_mt.HL)),
-            max_hl=hl.agg.filter(input_mt.HL > 0, hl.agg.max(input_mt.HL)),
+            max_hl=hl.agg.filter(input_mt.HL > 0, hl.agg.max(input_mt.HL))
         )
     )
 
@@ -1559,7 +1560,7 @@ def change_to_grch38_chrm(input_mt: hl.MatrixTable) -> None:
     assert "chrM" in ref.contigs
     input_mt = input_mt.key_rows_by(
         locus=hl.locus("chrM", input_mt.locus.position, reference_genome="GRCh38_chrM"),
-        alleles=input_mt.alleles,
+        alleles=input_mt.alleles
     )
 
     return input_mt
@@ -1571,7 +1572,7 @@ def format_vcf(
     min_hom_threshold: float = 0.95,
     vaf_filter_threshold: float = 0.01,
     min_het_threshold: float = 0.10,
-    skip_vep: bool = False,
+    skip_vep: bool = False
 ) -> dict:
     """
     Generate dictionary for VCF header annotations.
@@ -1605,7 +1606,7 @@ def format_vcf(
         dp_hist_all_n_larger=input_mt.dp_hist_all.n_larger,
         dp_hist_alt_n_larger=input_mt.dp_hist_alt.n_larger,
         dp_hist_all_bin_freq=input_mt.dp_hist_all.bin_freq,
-        dp_hist_alt_bin_freq=input_mt.dp_hist_alt.bin_freq,
+        dp_hist_alt_bin_freq=input_mt.dp_hist_alt.bin_freq
     )
 
     if not skip_vep:
@@ -1644,7 +1645,7 @@ def format_vcf(
         "age_hist_het",
         "age_hist_hom",
         "dp_hist_all",
-        "dp_hist_alt",
+        "dp_hist_alt"
     )
 
     ht = input_mt.rows()
@@ -1669,7 +1670,7 @@ def format_vcf(
                         **{
                             key: hl.map(
                                 lambda x: hl.delimit(x, delimiter="|"),
-                                input_mt.info[key],
+                                input_mt.info[key]
                             )
                         }
                     )
@@ -1697,296 +1698,296 @@ def format_vcf(
             "variant_collapsed": {
                 "Description": "Variant in format of RefPosAlt",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "hap_defining_variant": {
                 "Description": "Present if variant is present as a haplogroup defining variant in PhyloTree build 17",
                 "Number": "0",
-                "Type": "Flag",
+                "Type": "Flag"
             },
             "common_low_heteroplasmy": {
                 "Description": f"Present if variant is found at an overall frequency of .001 across all samples with a heteroplasmy level > 0 and < 0.50 (includes variants <{vaf_filter_threshold} heteroplasmy which are subsequently filtered)",
                 "Number": "0",
-                "Type": "Flag",
+                "Type": "Flag"
             },
             "AN": {
                 "Description": "Overall allele number (number of samples with non-missing genotype)",
                 "Number": "1",
-                "Type": "Integer",
+                "Type": "Integer"
             },
             "AC_hom": {
                 "Description": f"Allele count restricted to variants with a heteroplasmy level >= {min_hom_threshold}",
                 "Number": "1",
-                "Type": "Integer",
+                "Type": "Integer"
             },  # should put in threshold variable
             "AC_het": {
                 "Description": f"Allele count restricted to variants with a heteroplasmy level >= 0.10 and < {min_hom_threshold}",
                 "Number": "1",
-                "Type": "Integer",
+                "Type": "Integer"
             },
             "hl_hist": {
                 "Description": f"Histogram of heteroplasmy levels; bin edges are: {hl_hist_bin_edges}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "hap_hl_hist": {
                 "Description": f"Histogram of heteroplasmy levels for each haplogroup; bin edges are: {hl_hist_bin_edges}, haplogroup order: {haplogroup_order}",
                 "Number": f"{len_hap_hl_hist}",
-                "Type": "String",
+                "Type": "String"
             },
             "AF_hom": {
                 "Description": f"Allele frequency restricted to variants with a heteroplasmy level >= {min_hom_threshold}",
                 "Number": "1",
-                "Type": "Float",
+                "Type": "Float"
             },
             "AF_het": {
                 "Description": f"Allele frequency restricted to variants with a heteroplasmy level >= 0.10 and < {min_hom_threshold}",
                 "Number": "1",
-                "Type": "Float",
+                "Type": "Float"
             },
             "max_hl": {
                 "Description": "Maximum heteroplasmy level observed among all samples for that variant",
                 "Number": "1",
-                "Type": "Float",
+                "Type": "Float"
             },
             "hap_AN": {
                 "Description": f"List of overall allele number for each haplogroup, haplogroup order: {haplogroup_order}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "hap_AC_het": {
                 "Description": f"List of AC_het for each haplogroup, haplogroup order: {haplogroup_order}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "hap_AC_hom": {
                 "Description": f"List of AC_hom for each haplogroup, haplogroup order: {haplogroup_order}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "hap_AF_hom": {
                 "Description": f"List of AF_hom for each haplogroup, haplogroup order: {haplogroup_order}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "hap_AF_het": {
                 "Description": f"List of AF_het for each haplogroup, haplogroup order: {haplogroup_order}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "hap_faf_hom": {
                 "Description": f"List of filtering allele frequency for each haplogroup restricted to homoplasmic variants, haplogroup order: {haplogroup_order}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "hapmax_AF_hom": {
                 "Description": "Haplogroup with maximum AF_hom",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "hapmax_AF_het": {
                 "Description": "Haplogroup with maximum AF_het",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "faf_hapmax_hom": {
                 "Description": "Maximum filtering allele frequency across haplogroups restricted to homoplasmic variants",
                 "Number": "1",
-                "Type": "Float",
+                "Type": "Float"
             },
             "bin_edges_hl_hist": {
                 "Description": "Bin edges for histogram of heteroplasmy levels",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "pop_AN": {
                 "Description": f"List of overall allele number for each population, population order: {population_order}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "pop_AC_het": {
                 "Description": f"List of AC_het for each population, population order: {population_order}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "pop_AC_hom": {
                 "Description": f"List of AC_hom for each population, population order: {population_order}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "pop_AF_hom": {
                 "Description": f"List of AF_hom for each population, population order: {population_order}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "pop_AF_het": {
                 "Description": f"List of AF_het for each population, population order: {population_order}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "pop_hl_hist": {
                 "Description": f"Histogram of heteroplasmy levels for each population; bin edges are: {hl_hist_bin_edges}, population order: {population_order}",
                 "Number": f"{len_pop_hl_hist}",
-                "Type": "String",
+                "Type": "String"
             },
             "age_hist_hom_bin_freq": {
                 "Description": f"Histogram of ages of individuals with a homoplasmic variant; bin edges are: {age_hist_hom_bin_edges}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "age_hist_hom_n_smaller": {
                 "Description": "Count of age values falling below lowest histogram bin edge for individuals with a homoplasmic variant",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "age_hist_hom_n_larger": {
                 "Description": "Count of age values falling above highest histogram bin edge for individuals with a homoplasmic variant",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "age_hist_het_bin_freq": {
                 "Description": f"Histogram of ages of individuals with a heteroplasmic variant; bin edges are: {age_hist_het_bin_edges}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "age_hist_het_n_smaller": {
                 "Description": "Count of age values falling below lowest histogram bin edge for individuals with a heteroplasmic variant",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "age_hist_het_n_larger": {
                 "Description": "Count of age values falling above highest histogram bin edge for individuals with a heteroplasmic variant",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "dp_hist_all_n_larger": {
                 "Description": "Count of dp values falling above highest histogram bin edge for all individuals",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "dp_hist_alt_n_larger": {
                 "Description": "Count of dp values falling above highest histogram bin edge for individuals with the alternative allele",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "dp_hist_all_bin_freq": {
                 "Description": f"Histogram of dp values for all individuals; bin edges are: {dp_hist_all_bin_edges}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "dp_hist_alt_bin_freq": {
                 "Description": f"Histogram of dp values for individuals with the alternative allele; bin edges are: {dp_hist_alt_bin_edges}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "dp_mean": {
                 "Description": "Mean depth across all individuals for the site",
                 "Number": "1",
-                "Type": "Float",
+                "Type": "Float"
             },
             "mq_mean": {
                 "Description": "Mean MMQ (median mapping quality) across individuals with a variant for the site",
                 "Number": "1",
-                "Type": "Float",
+                "Type": "Float"
             },
             "tlod_mean": {
                 "Description": "Mean TLOD (Log 10 likelihood ratio score of variant existing versus not existing) across individuals with a variant for the site",
                 "Number": "1",
-                "Type": "Float",
+                "Type": "Float"
             },
             "pon_mt_trna_prediction": {
                 "Description": "tRNA pathogenicity classification from PON-mt-tRNA",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "pon_ml_probability_of_pathogenicity": {
                 "Description": "tRNA ML_probability_of_pathogenicity from PON-mt-tRNA",
                 "Number": "1",
-                "Type": "Float",
+                "Type": "Float"
             },
             "mitotip_score": {
                 "Description": "MitoTip raw score",
                 "Number": "1",
-                "Type": "Float",
+                "Type": "Float"
             },
             "mitotip_trna_prediction": {
                 "Description": "MitoTip score interpretation",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "vep": {
                 "Description": "Consequence annotations from Ensembl VEP; note that the SINGLE_EXON flag and END_TRUNC filters have been removed from the LOFTEE annotations to avoid misinterpretation in context of the mitochondrial genome. Format: Allele|Consequence|IMPACT|SYMBOL|Gene|Feature_type|Feature|BIOTYPE|EXON|INTRON|HGVSc|HGVSp|cDNA_position|CDS_position|Protein_position|Amino_acids|Codons|ALLELE_NUM|DISTANCE|STRAND|VARIANT_CLASS|MINIMISED|SYMBOL_SOURCE|HGNC_ID|CANONICAL|TSL|APPRIS|CCDS|ENSP|SWISSPROT|TREMBL|UNIPARC|GENE_PHENO|SIFT|PolyPhen|DOMAINS|HGVS_OFFSET|MOTIF_NAME|MOTIF_POS|HIGH_INF_POS|MOTIF_SCORE_CHANGE|LoF|LoF_filter|LoF_flags|LoF_info",
                 "Number": ".",
-                "Type": "String",
+                "Type": "String"
             },
             "filters": {
                 "Description": "Site-level filters",
                 "Number": ".",
-                "Type": "String",
+                "Type": "String"
             },
             "base_qual_hist": {
                 "Description": f"Histogram of number of individuals failing the base_qual filter (alternate allele median base quality) across heteroplasmy levels, bin edges are: {hl_hist_bin_edges}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "heteroplasmy_below_min_het_threshold_hist": {
                 "Description": f"Histogram of number of individuals with a heteroplasmy level below {min_het_threshold}, bin edges are: {hl_hist_bin_edges}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "position_hist": {
                 "Description": f"Histogram of number of individuals failing the position filter (median distance of alternate variants from end of reads) across heteroplasmy levels, bin edges are: {hl_hist_bin_edges}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "strand_bias_hist": {
                 "Description": f"Histogram of number of individuals failing the strand_bias filter (evidence for alternate allele comes from one read direction only) across heteroplasmy levels, bin edges are: {hl_hist_bin_edges}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "weak_evidence_hist": {
                 "Description": f"Histogram of number of individuals failing the weak_evidence filter (mutation does not meet likelihood threshold) across heteroplasmy levels, bin edges are: {hl_hist_bin_edges}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "contamination_hist": {
                 "Description": f"Histogram of number of individuals failing the contamination filter across heteroplasmy levels, bin edges are: {hl_hist_bin_edges}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "excluded_AC": {
                 "Description": "Excluded allele count (number of individuals in which the variant was filtered out)",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
         },
         "format": {
             "GT": {
                 "Description": f"Genotype, 1/1 if heteroplasmy level >= {min_hom_threshold}, and 0/1 if heteroplasmy level < {min_hom_threshold}",
                 "Number": "1",
-                "Type": "String",
+                "Type": "String"
             },
             "DP": {
                 "Description": "Depth of coverage",
                 "Number": "1",
-                "Type": "Integer",
+                "Type": "Integer"
             },
             "FT": {
                 "Description": "Sample-level filters",
                 "Number": ".",
-                "Type": "String",
+                "Type": "String"
             },
             "FT_LIFT": {
                 "Description": "Sample-level liftover tags",
                 "Number": ".",
-                "Type": "String",
+                "Type": "String"
             },
             "HL": {"Description": "Heteroplasmy level", "Number": "1", "Type": "Float"},
             "MQ": {"Description": "Mapping quality", "Number": "1", "Type": "Float"},
             "TLOD": {
                 "Description": "Log 10 likelihood ratio score of variant existing versus not existing",
                 "Number": "1",
-                "Type": "Float",
+                "Type": "Float"
             },
         },
     }
@@ -2058,11 +2059,14 @@ def process_mt_for_flat_file_analysis(mt, skip_vep, allow_gt_fail):
 
     ht = ht.annotate(AD_ref = ht.AD[0], AD_alt = ht.AD[1], FT = ht.FT.union(ht.filters)).drop('AD','filters')
     ht = ht.annotate(F2R1_ref = ht.F2R1[0], F2R1_alt = ht.F2R1[1], F1R2_ref = ht.F1R2[0], F1R2_alt = ht.F1R2[1]).drop('F2R1','F1R2')
+    ht = ht.annotate(RPA_ref = ht.RPA[0], RPA_alt = ht.RPA[1]).drop('RPA')
     if 'AS_SB_TABLE' in ht.row:
-        ht = ht.annotate(FWD_ref = hl.if_else(hl.is_defined(ht.AS_SB_TABLE), hl.int32(ht.AS_SB_TABLE[0].split(',')[0]), hl.missing(hl.tint32)),
-                         FWD_alt = hl.if_else(hl.is_defined(ht.AS_SB_TABLE), hl.int32(ht.AS_SB_TABLE[1].split(',')[0]), hl.missing(hl.tint32)),
-                         REV_ref = hl.if_else(hl.is_defined(ht.AS_SB_TABLE), hl.int32(ht.AS_SB_TABLE[0].split(',')[1]), hl.missing(hl.tint32)),
-                         REV_alt = hl.if_else(hl.is_defined(ht.AS_SB_TABLE), hl.int32(ht.AS_SB_TABLE[1].split(',')[1]), hl.missing(hl.tint32)))
+        ht = ht.annotate(AS_SB_SPLIT = ht.AS_SB_TABLE.split('\\|'))
+        ht = ht.annotate(FWD_SB_ref = hl.if_else(hl.is_defined(ht.AS_SB_TABLE), hl.int32(ht.AS_SB_SPLIT[0].split(',')[0]), hl.missing(hl.tint32)),
+                         FWD_SB_alt = hl.if_else(hl.is_defined(ht.AS_SB_TABLE), hl.int32(ht.AS_SB_SPLIT[1].split(',')[0]), hl.missing(hl.tint32)),
+                         REV_SB_ref = hl.if_else(hl.is_defined(ht.AS_SB_TABLE), hl.int32(ht.AS_SB_SPLIT[0].split(',')[1]), hl.missing(hl.tint32)),
+                         REV_SB_alt = hl.if_else(hl.is_defined(ht.AS_SB_TABLE), hl.int32(ht.AS_SB_SPLIT[1].split(',')[1]), hl.missing(hl.tint32)))
+        ht = ht.drop('AS_SB_TABLE', 'AS_SB_SPLIT')
     ht = ht.annotate(FT = ht.FT.difference({'PASS'}), FT_LIFT = ht.FT_LIFT.difference({'PASS'}))
     
     # fail_gt should be a subset of missing_call
@@ -2130,7 +2134,7 @@ def main(args):  # noqa: D103
                 sites_txt_path,
                 sites_vcf_path,
                 samples_txt_path,
-                samples_vcf_path,
+                samples_vcf_path
             ]
         )
     )
@@ -2203,7 +2207,7 @@ def main(args):  # noqa: D103
         # Switch build 37 to build 38
         mt = mt.key_rows_by(
             locus=hl.locus("chrM", mt.locus.position, reference_genome="GRCh38"),
-            alleles=mt.alleles,
+            alleles=mt.alleles
         )
         # NOTE: at this stage there should still be no instances of hl.len(FT) == 0. Missing FT implies HL not called.
         # NOTE: all missing HL entries have missing FT. These are entries with low DP so cannot be called hom ref.
@@ -2325,7 +2329,7 @@ def main(args):  # noqa: D103
         samples_vcf_path,
         metadata=vcf_meta,
         append_to_header=vcf_header_file,
-        tabix=True,
+        tabix=True
     )  # Full VCF for internal use
     vcf_variant_ht = vcf_mt.rows()
     rows_mt = hl.MatrixTable.from_rows_table(vcf_variant_ht).key_cols_by(s="foo")
@@ -2334,7 +2338,7 @@ def main(args):  # noqa: D103
         sites_vcf_path,
         metadata=vcf_meta,
         append_to_header=vcf_header_file,
-        tabix=True,
+        tabix=True
     )  # Sites-only VCF for external use
 
     logger.info("All annotation steps are completed")
@@ -2349,19 +2353,19 @@ if __name__ == "__main__":
         "-d",
         "--output-dir",
         help="Path to directory to which output should be written",
-        required=True,
+        required=True
     )
     parser.add_argument(
         "-a",
         "--participant-data",
         help="Output file that results from Terra data download",
-        required=True,
+        required=True
     )
     parser.add_argument(
         "-v",
         "--vep-results",
         help="MatrixTable path to output vep results (either the existing results or where to ouput new vep results if also setting run_vep)",
-        required=True,
+        required=True
     )
     parser.add_argument(
         "--slack-token", help="Slack token that allows integration with slack",
@@ -2373,29 +2377,29 @@ if __name__ == "__main__":
         "--min-het-threshold",
         help="Minimum heteroplasmy level to define a variant as a PASS heteroplasmic variant, genotypes below this threshold will count towards the heteroplasmy_below_min_het_threshold filter and be set to missing",
         type=float,
-        default=0.10,
+        default=0.10
     )
     parser.add_argument(
         "--min-hom-threshold",
         help="Minimum heteroplasmy level to define a variant as homoplasmic",
         type=float,
-        default=0.95,
+        default=0.95
     )
     parser.add_argument(
         "--vaf-filter-threshold",
         help="Should match vaf_filter_threshold supplied to Mutect2, variants below this value will be set to homoplasmic reference after calculating the common_low_heteroplasmy filter",
         type=float,
-        default=0.01,
+        default=0.01
     )
     parser.add_argument(
         "--subset-to-gnomad-release",
         help="Set to True to only include released gnomAD samples",
-        action="store_true",
+        action="store_true"
     )
     parser.add_argument(
         "--keep-all-samples",
         help="Set to True to keep all samples (will skip steps that filter samples because of contamination, overlapping homoplasmies, and/or mitochondrial copy number)",
-        action="store_true",
+        action="store_true"
     )
     parser.add_argument(
         "--run-vep", help="Set to True to run/rerun vep", action="store_true"

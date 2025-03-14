@@ -17,8 +17,8 @@ def reader(args):
 
 
 def import_and_cat_tables(directory_df, id_col, path_col, new_id_col, max_threads=2, filter_by=None, enforce_nonmiss=False):
-    ids = [x for _, x in directory_df[id_col].iteritems()]
-    directories = [x for _, x in directory_df[path_col].iteritems()]
+    ids = [x for _, x in directory_df[id_col].items()]
+    directories = [x for _, x in directory_df[path_col].items()]
     p = multiprocessing.Pool(processes=max_threads)
 
     to_subset_to = filter_by if filter_by is not None else ids
@@ -35,7 +35,7 @@ def import_and_cat_tables(directory_df, id_col, path_col, new_id_col, max_thread
 
     # ensure that all ids are found in the new df
     if enforce_nonmiss:
-        new_ids = [x for _, x in concatenated_df[new_id_col].iteritems()]
+        new_ids = [x for _, x in concatenated_df[new_id_col].items()]
         tf_found_new = all([x_old in new_ids for x_old in ids])
         tf_found_old = all([x_new in ids for x_new in new_ids])
         if not (tf_found_new and tf_found_old):
@@ -52,7 +52,8 @@ def main(pipeline_output_path, qc_stats_path, file_paths_table_output,
     pipeline_output_file = pipeline_output_file.rename({'merged_calls': 'vcf', 
                                                         'merged_coverage':'coverage', 
                                                         'merged_statistics': 'stats', 
-                                                        'subpath_id':'batch'}, axis=1)
+                                                        'cromwell_id':'batch'}, axis=1)
+    print('Loaded pipeline output file with shape', pipeline_output_file.shape, 'and columns', pipeline_output_file.columns.to_list())
 
     # download mito pipeline data
     print('Obtaining QC stats...')
@@ -70,9 +71,28 @@ def main(pipeline_output_path, qc_stats_path, file_paths_table_output,
     basename_vcf = [os.path.dirname(x) for x in pipeline_output_file.vcf]
     basename_cov = [os.path.dirname(x) for x in pipeline_output_file.coverage]
     basename_stats = [os.path.dirname(x) for x in pipeline_output_file.stats]
-    if not all([(a == b) and (a == c) and (a == d) for a,b,c,d in zip(basename_log, basename_vcf, basename_cov, basename_stats)]):
+#    if not all([(a == b) and (a == c) and (a == d) for a,b,c,d in zip(basename_log, basename_vcf, basename_cov, basename_stats)]):
+    if not all([((b == c) and (b == d)) or (('MergeVCFs' in b) and (c == d)) 
+                for a,b,c,d in zip(basename_log, basename_vcf, basename_cov, basename_stats)]):
+        is_equal = [(b == c) and (b == d) for a,b,c,d in zip(basename_log, basename_vcf, basename_cov, basename_stats)]
+        idx_not_equal = [idx for idx, val in enumerate(is_equal) if not val]
+        print(len(idx_not_equal))
+        print(idx_not_equal)
+#        print(basename_log[idx_not_equal[0]])
+        print(basename_vcf[idx_not_equal[0]])
+        print(basename_cov[idx_not_equal[0]])
+        print(basename_stats[idx_not_equal[0]])
+#        print(basename_log[idx_not_equal[0]].strip() == basename_vcf[idx_not_equal[0]].strip())
+        print(basename_vcf[idx_not_equal[0]].strip() == basename_cov[idx_not_equal[0]].strip())
+        print(basename_vcf[idx_not_equal[0]].strip() == basename_stats[idx_not_equal[0]].strip())
         raise ValueError('ERROR: all files should have the same path within a batch.')
-    if not all([re.search(search, x) for x, search in zip(basename_vcf, pipeline_output_file.batch)]):
+    if not all([re.search(search, x) or ('MergeVCFs' in x) for x, search in zip(basename_vcf, pipeline_output_file.batch.to_list())]):
+        is_equal = [re.search(search, x) or ('MergeVCFs' in basename_vcf) for x, search in zip(basename_vcf, pipeline_output_file.batch.to_list())]
+        idx_not_equal = [idx for idx, val in enumerate(is_equal) if not val]
+        print(len(idx_not_equal))
+        print(idx_not_equal)
+        print(basename_vcf[idx_not_equal[0]])
+        print(pipeline_output_file.batch.to_list()[idx_not_equal[0]])
         raise ValueError('ERROR: all files should have paths matching the batch.')
 
     # import stats and qc and merge all into table
