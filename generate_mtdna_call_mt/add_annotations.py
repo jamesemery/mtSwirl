@@ -29,8 +29,8 @@ from gnomad_mitochondria.pipeline.annotation_descriptions import (
 # gnomad_qc: https://github.com/broadinstitute/gnomad_qc
 
 # Include NA in POPS to account for cases where population annotations are missing
-POPS = POPS["v3"]["genomes"]
-POPS.append("NA")
+# POPS = POPS["v3"]["genomes"]
+# POPS.append("NA")
 
 #hl.init(tmp_dir="file:///tmp")
 #hl.init(tmp_dir=f"{os.environ['WORKSPACE_BUCKET']}/tmp",
