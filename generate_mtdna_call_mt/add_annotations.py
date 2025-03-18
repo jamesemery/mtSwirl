@@ -35,8 +35,8 @@ from gnomad_mitochondria.pipeline.annotation_descriptions import (
 
 #hl.init(tmp_dir="file:///tmp")
 #hl.init(tmp_dir=f"{os.environ['WORKSPACE_BUCKET']}/tmp",
-       local_tmpdir="file:///tmp",
-       spark_conf={"spark.local.dir": "file:///tmp"})
+#       local_tmpdir="file:///tmp",
+#       spark_conf={"spark.local.dir": "file:///tmp"})
 
 RESOURCE_PATH = 'gcp-public-data--gnomad/resources/mitochondria'
 RESOURCES = {
