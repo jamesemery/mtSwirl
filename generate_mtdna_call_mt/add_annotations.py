@@ -16,8 +16,8 @@ from gnomad.utils.annotations import age_hists_expr
 from gnomad.utils.reference_genome import add_reference_sequence
 from gnomad.utils.slack import slack_notifications
 from gnomad.utils.vep import vep_struct_to_csq
-from gnomad_qc.v3.resources.meta import meta  # pylint: disable=import-error
-# from gnomad.resources.grch38.gnomad import POPS
+# from gnomad_qc.v3.resources.meta import meta  # pylint: disable=import-error
+from gnomad.resources.grch38.gnomad import POPS
 from gnomad.resources.grch38.reference_data import dbsnp, _import_dbsnp
 from gnomad_mitochondria.pipeline.annotation_descriptions import (
     add_descriptions,
@@ -35,8 +35,8 @@ from gnomad_mitochondria.pipeline.annotation_descriptions import (
 
 #hl.init(tmp_dir="file:///tmp")
 #hl.init(tmp_dir=f"{os.environ['WORKSPACE_BUCKET']}/tmp",
-#        local_tmpdir="file:///tmp",
-#        spark_conf={"spark.local.dir": "file:///tmp"})
+       local_tmpdir="file:///tmp",
+       spark_conf={"spark.local.dir": "file:///tmp"})
 
 RESOURCE_PATH = 'gcp-public-data--gnomad/resources/mitochondria'
 RESOURCES = {
