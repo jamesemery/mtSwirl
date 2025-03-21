@@ -37,8 +37,8 @@ if __name__ == '__main__':
             stat_ht.major_haplogroup[0:2],
             stat_ht.major_haplogroup[0],
         ),
-        mtcn = 2 * stat_ht.mean_coverage / stat_ht.nuc_mean_coverage,
-        mtcn_median = 2 * stat_ht.median_coverage / stat_ht.nuc_mean_coverage
+        mtcn = 2 * stat_ht.mt_mean_coverage / stat_ht.wgs_mean_coverage,
+        mtcn_median = 2 * stat_ht.mt_median_coverage / stat_ht.wgs_mean_coverage
     )
 
     # export
